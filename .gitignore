@@ -4,6 +4,7 @@
 .ptp-sync/
 .pydevproject
 .settings/
+*.score
 *pkl
 *.h5
 *.npy
