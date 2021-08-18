@@ -1,3 +1,13 @@
+.ptp-sync-folder
+.DS_Store
+.project
+.ptp-sync/
+.pydevproject
+.settings/
+*pkl
+*.h5
+*.npy
+*.txt
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
