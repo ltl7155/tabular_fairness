@@ -20,7 +20,7 @@ if no_cache  :
 
     # make outputs stable across runs
     np.random.seed(42)
-    tf.random.set_seed(42)
+    tf.random.set_random_seed(42)
     
     
     def set_table(vocab):
@@ -32,8 +32,8 @@ if no_cache  :
         return table
     
     cur_dir = os.path.dirname(os.path.abspath(__file__))
-    print("cur_dir",cur_dir)
-    data_path = os.path.join(cur_dir, '../datasets/adult.csv' )
+    
+    data_path = os.path.join(cur_dir, 'datasets/adult.csv' )
     # load adult dataset, and eliminate unneccessary features
     # data_path = ()
     # print (data_path)

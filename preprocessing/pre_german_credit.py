@@ -25,7 +25,7 @@ if no_cache  :
     
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     # load german credit risk dataset
-    data_path = os.path.join(cur_dir,'../datasets/proc_german_num_02 withheader-2.csv')
+    data_path = os.path.join(cur_dir,'datasets/proc_german_num_02 withheader-2.csv')
     df = pd.read_csv(data_path)
     
     

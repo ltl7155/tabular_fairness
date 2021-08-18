@@ -4,21 +4,27 @@ import joblib
 import numpy as np
 from explain import  get_relevance, get_critical_neurons
 import tensorflow as tf
-from tensorflow import set_random_seed
+# from tensorflow import set_random_seed
 from scalelayer import  ScaleLayer
 from numpy.random import seed
 import itertools
 import time
 import copy
-
+from preprocessing import pre_census_income
+import tensorflow.keras.backend as KTF
 import argparse
 
 seed(1)
-set_random_seed(2)
+tf.random.set_random_seed(2)
+config = tf.ConfigProto()  
+config.gpu_options.allow_growth=True 
+sess = tf.Session(config=config)
+
+KTF.set_session(sess)
 
 def my_loss_fun(y_true, y_pred):
     # do whatever you want
-    return y_pred
+    return tf.math.sigmoid(y_pred)
 
 def construct_model(neurons, top_layer, name, min, max, need_weights=True):
     in_shape = X_train.shape[1:]
@@ -62,14 +68,29 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
         return keras.Model(input, x)
 
     w = 0.
+    
     for i, re in enumerate(neurons):
         neg = re[0]
         pos = re[1]
         d = ds[i]
+        if i == 4:
+            neg = []
+    
+#         normal = [j for j in range(d.weights[0].shape[1]) if j not in neg and j not in pos]
+        normal = [j for j in range(d.weights[0].shape[1])]
         for m in neg:
+#             w = tf.math.add(w, tf.math.abs(d.weights[0][0][m]))
             w = tf.math.add(w, d.weights[0][0][m])
+#             w = tf.math.subtract(w, d.weights[0][0][m])
+#             w = tf.math.add(w, tf.math.sum(tf.math.abs(d.weights[0][0])))
         for n in pos:
             w = tf.math.subtract(w, d.weights[0][0][n])
+#             w = tf.math.add(w, tf.math.abs(d.weights[0][0][n]))
+        for o in normal:
+            w = tf.math.add(w, tf.math.square(d.weights[0][0][o]))
+#             w = tf.math.add(w, d.weights[0][0][n])
+#     for m in range(ds[-1].weights[0].shape[1]):
+#         w = tf.math.add(w, tf.math.abs(ds[-1].weights[0][0][m]))
     new_w = tf.identity(tf.reshape(w, [1, 1]), name=name)
 
     model = keras.Model(input, [x, new_w])
@@ -137,6 +158,7 @@ def get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_
             p_critical = my_filter(protected_layer_critical, total_num)
             filtered_criticals.append(p_critical)
             penalty = np.setdiff1d(p_critical, i_critical)
+#             penalty = np.intersect1d(p_critical, i_critical)
             awarded = np.setdiff1d(i_critical, p_critical)
             if current_penalty is None:
                 current_penalty = penalty
@@ -145,8 +167,9 @@ def get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_
             if current_awarded is None:
                 current_awarded = awarded
             else:
-                current_awarded = np.intersect1d(current_awarded, awarded)
-            print("current_penalty", current_penalty, "current_awarded", current_awarded)
+#                 current_awarded = np.intersect1d(current_awarded, awarded)
+                current_awarded = np.union1d(current_awarded, awarded)
+        print("current_penalty", current_penalty, "current_awarded", current_awarded)
         neurons.append((current_penalty, current_awarded))
     neurons = neurons[1: (top_n + 1)]
     return neurons
@@ -161,48 +184,39 @@ def retrain(k, ps, neurons, para_res):
     losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun}
     losses_weights = {'layer6': 1.0, tf_name: 1.0}
 
-    # test this new model
-    # newdata_res = []
-    # l = len(similar_X)
-    # for i in range(l):
-    #     newdata_re, _ = new_model.predict(similar_X[i])
-    #     newdata_re = (newdata_re > 0.5).astype(int).flatten()
-    #     newdata_res.append(newdata_re)
-    # repaired_num = get_repair_num(newdata_res)
-    # repaired_acc = repaired_num / len(data)
-    # print(repaired_num, repaired_acc)
-    # val = (new_model.predict(X_val)[0] > 0.5).astype(int).flatten()
-    # print('acc', np.sum(val == y_val) / len(y_val))
-    # exit()
-
     new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'layer6': "accuracy"})
-    history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=10,
+    history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=20,
                             validation_data=(X_val, {'layer6': y_val, tf_name: y_val}))
 
-    re, _ = new_model.predict(X_val)
+    re, _ = new_model.predict(X_test)
     pred_maskmodel = (re > 0.5).astype(int).flatten()
 
-    val_acc = np.sum(pred_maskmodel == y_val) / len(y_val)
+    test_acc = np.sum(pred_maskmodel == y_test) / len(y_test)
 
     # data_re, _ = new_model.predict(data)
     # data_re = (data_re > 0.5).astype(int).flatten()
-    dis_num = 0
 
-    newdata_res = []
-    l = len(similar_X)
-    for i in range(l):
-        newdata_re, _ = new_model.predict(similar_X[i])
-        newdata_re = (newdata_re > 0.5).astype(int).flatten()
-        newdata_res.append(newdata_re)
+    if test_acc > args.acc_lb:
+        newdata_res = []
+        l = len(similar_X)
+        for i in range(l):
+            newdata_re, _ = new_model.predict(similar_X[i])
+            newdata_re = (newdata_re > 0.5).astype(int).flatten()
+            newdata_res.append(newdata_re)
 
-    repaired_num = get_repaired_num(newdata_res)
-    repair_acc = repaired_num / len(dis_data)
-    finals.append((val_acc, repair_acc))
-    para_res[ps] = (val_acc, repair_acc)
+        repaired_num = get_repaired_num(newdata_res)
+        repair_acc = repaired_num / len(dis_data)
+    else:
+        repair_acc = 0
+
+    # data_re, _ = new_model.predict(data)
+    # data_re = (data_re > 0.5).astype(int).flatten()
+    finals.append((test_acc, repair_acc))
+    para_res[ps] = (test_acc, repair_acc)
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/adult_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{args.p0}_p{args.p1}.h5'
+        model_name = f'models/adult_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -223,16 +237,21 @@ if __name__ == '__main__':
     parser.add_argument('--target_model_path', default='models/adult_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='a', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
-    parser.add_argument('--p0', type=float, default=-1)
+    parser.add_argument('--p0', type=float, default=1)
     parser.add_argument('--p1', type=float, default=1)
     parser.add_argument('--weight_threshold', type=float, default=0.2)
     parser.add_argument('--saved', type=bool, default=False)
+    parser.add_argument('--adjust_para', type=bool, default=False)
+    parser.add_argument('--acc_lb', type=float, default=0.80)
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
     # data preparations
     path_dict = get_path_dict()
-    X_train, X_val, y_train, y_val, y_sex_train, y_sex_val, constraint = joblib.load('data/adult/adult.data')
+    X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
+    pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
+    
+    X_test, y_test = pre_census_income.X_test, pre_census_income.y_test
     target_model_path = args.target_model_path
     data_name = f"data/adult/C-{args.attr}_ids_EIDIG_INF.npy"
     dis_data = np.load(data_name)
@@ -244,7 +263,7 @@ if __name__ == '__main__':
                                         save_path=os.path.join('scores/adult', os.path.basename(args.income_path) + ".score"))
     income_critical = get_critical_neurons(income_train_scores, args.percent)
     finals = []
-    for top_n in [4]:
+    for top_n in [5]:
         protected_critical_ls = []
         for a in attrs:
             path = path_dict[a][top_n - 1]
@@ -259,34 +278,41 @@ if __name__ == '__main__':
         # paras = [(-1, 1), (-0.8, 1), (-0.5, 1), (-0.2, 1), (0, 1), (-1, 1.5), (-0.8, 1.5), (-0.4, 1.5), (0, 1.5), (-1, 2), (-0.8, 2), (-0.4, 2), (0,2)]
         # paras = [(0.2, 1), (0.5, 1), (0.7,1), (0.9,1)]
         # paras = [(-1, 1)]
-        paras = [(a/10, b/10) for a in np.arange(-10, 10, 1) for b in np.arange(a, 10, 1)]
-        # paras = [(args.p0, args.p1)]
-        print("*"*10, len(paras))
+        if args.adjust_para:
+            paras = [(a/10, b/10) for a in np.arange(-11, 0, 1) for b in np.arange(1, 10, 1)]
+        else:
+            paras = [(-args.p0/10, args.p1/10)]
+        print("*"*100, paras)
         para_res = dict()
         for k, ps in enumerate(paras):
             retrain(k, ps, neurons, para_res)
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
-    print("Retrain is over!")
-    augmented_model = keras.models.load_model(target_model_path)
-    aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
-    aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
-    dis_num = 0
-    newdata_res = []
+            file_path = f'records_adult_repair/{args.attr}_{args.percent}_{args.weight_threshold}_top5_a_square/'
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
+            with open(file_name, 'w') as f:
+                f.write("done")
+#     augmented_model = keras.models.load_model(target_model_path)
+#     aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
+#     aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
+#     dis_num = 0
+#     newdata_res = []
 
-    l = len(similar_X)
-    for i in range(l):
-        newdata_re = augmented_model.predict(similar_X[i])
-        newdata_re = (newdata_re > 0.5).astype(int).flatten()
-        newdata_res.append(newdata_re)
-    repaired_num = get_repaired_num(newdata_res)
+#     l = len(similar_X)
+#     for i in range(l):
+#         newdata_re = augmented_model.predict(similar_X[i])
+#         newdata_re = (newdata_re > 0.5).astype(int).flatten()
+#         newdata_res.append(newdata_re)
+#     repaired_num = get_repaired_num(newdata_res)
 
-    print('Aug', np.sum(aug_val == y_val)/len(y_val))
-    print('Aug', repaired_num/len(dis_data))
+#     print('Aug', np.sum(aug_val == y_val)/len(y_val))
+#     print('Aug', repaired_num/len(dis_data))
 
 
     for k in para_res.keys():
-        if para_res[k][0] > 0.8 and para_res[k][1] > 0.9:
+        if para_res[k][0] > 0.8 and para_res[k][1] > 0.98:
             print(k, para_res[k])
 

@@ -81,8 +81,8 @@ if __name__ == '__main__':
         # nadam = keras.optimizers.Nadam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
         model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
 
-        history = model.fit(x=X_train, y=y_train_labels, epochs=60,
+        history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
         # save model.
-        model_name = 'models/finetuned_models_protected_attributes/bank/' + args.attr + '_bank_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+        model_name = 'models/finetuned_models_protected_attributes2/bank/' + args.attr + '_bank_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)

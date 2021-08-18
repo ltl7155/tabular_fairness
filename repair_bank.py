@@ -175,30 +175,34 @@ def retrain(k, ps, neurons, para_res):
     history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=10,
                             validation_data=(X_val, {'layer6': y_val, tf_name: y_val}))
 
-    re, _ = new_model.predict(X_val)
+    re, _ = new_model.predict(X_test)
     pred_maskmodel = (re > 0.5).astype(int).flatten()
 
-    val_acc = np.sum(pred_maskmodel == y_val) / len(y_val)
+    test_acc = np.sum(pred_maskmodel == y_test) / len(y_test)
 
     # data_re, _ = new_model.predict(data)
     # data_re = (data_re > 0.5).astype(int).flatten()
     dis_num = 0
 
-    newdata_res = []
-    l = len(similar_X)
-    for i in range(l):
-        newdata_re, _ = new_model.predict(similar_X[i])
-        newdata_re = (newdata_re > 0.5).astype(int).flatten()
-        newdata_res.append(newdata_re)
+    if test_acc > args.acc_lb:
+        newdata_res = []
+        l = len(similar_X)
+        for i in range(l):
+            newdata_re, _ = new_model.predict(similar_X[i])
+            newdata_re = (newdata_re > 0.5).astype(int).flatten()
+            newdata_res.append(newdata_re)
 
-    repaired_num = get_repaired_num(newdata_res)
-    repair_acc = repaired_num / len(dis_data)
-    finals.append((val_acc, repair_acc))
-    para_res[ps] = (val_acc, repair_acc)
+        repaired_num = get_repaired_num(newdata_res)
+        repair_acc = repaired_num / len(dis_data)
+    else:
+        repair_acc = 0
+
+    finals.append((test_acc, repair_acc))
+    para_res[ps] = (test_acc, repair_acc)
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/bank_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{args.p0}_p{args.p1}.h5'
+        model_name = f'models/bank_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -218,6 +222,8 @@ if __name__ == '__main__':
     parser.add_argument('--p0', type=float, default=-1)
     parser.add_argument('--p1', type=float, default=1)
     parser.add_argument('--saved', type=bool, default=False)
+    parser.add_argument('--adjust_para', type=bool, default=False)
+    parser.add_argument('--acc_lb', type=float, default=0.88)
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
@@ -229,6 +235,7 @@ if __name__ == '__main__':
 
     X_train, X_val, y_train, y_val, constraint \
         = pre_bank_marketing.X_train, pre_bank_marketing.X_val, pre_bank_marketing.y_train, pre_bank_marketing.y_val, pre_bank_marketing.constraint
+    X_test, y_test = pre_bank_marketing.X_test, pre_bank_marketing.y_test
 
     target_model_path = args.target_model_path
     data_name = f"data/bank/B-{args.attr}_ids_EIDIG_INF.npy"
@@ -258,12 +265,21 @@ if __name__ == '__main__':
         # paras = [(0.2, 1), (0.5, 1), (0.7,1), (0.9,1)]
         # paras = [(-1, 1)]
         # paras = [(args.p0, args.p1)]
-        paras = [(a / 10, b / 10) for a in np.arange(-10, 10, 1) for b in np.arange(a, 10, 1)]
+        if args.adjust_para:
+            paras = [(a / 10, b / 10) for a in np.arange(-20, 20, 1) for b in np.arange(a, 20, 1)]
+        else:
+            paras = [(-args.p0/10, args.p1/10)]
         para_res = dict()
         for k, ps in enumerate(paras):
             retrain(k, ps, neurons, para_res)
         for k in para_res.keys():
             print(k, para_res[k])
+            file_path = f'records_bank_repair/{args.attr}/'
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
+            with open(file_name, 'w') as f:
+                f.write("done")
             # weights = new_model.get_weights()
     print("Retrain is over!")
     augmented_model = keras.models.load_model(target_model_path)
@@ -278,6 +294,7 @@ if __name__ == '__main__':
         newdata_re = (newdata_re > 0.5).astype(int).flatten()
         newdata_res.append(newdata_re)
     repaired_num = get_repaired_num(newdata_res)
+
 
     print('Aug', np.sum(aug_val == y_val)/len(y_val))
     print('Aug', repaired_num/len(dis_data))

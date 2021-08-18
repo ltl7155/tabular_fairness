@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
+from preprocessing import pre_census_income
 
 seed(1)
 set_random_seed(2)
@@ -13,7 +14,8 @@ import sys, os
 sys.path.append("..")
 sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
 
-X_train, X_val, y_train_income, y_val_income, y_sex_train, y_sex_val, constraint = joblib.load('data/adult.data')
+X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
+    pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
 
 # a = X_train[:, 0]
 # r = X_train[:, 6]
@@ -60,7 +62,7 @@ import argparse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
-    parser.add_argument('--path', default='models/adult_model.h5', help='model_path')
+    parser.add_argument('--path', default='models/retrained_models_EIDIG/adult_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='a', help='protected attributes')
     args = parser.parse_args()
 
@@ -72,7 +74,7 @@ if __name__ == '__main__':
                'r': 5,
                'g': 1,
                }
-    frozen_layers = [3, 4, 5]
+    frozen_layers = [1, 2, 3, 4, 5]
 
     for frozen_layer in frozen_layers:
         model = construct_model(frozen_layer, args.attr)
@@ -108,7 +110,7 @@ if __name__ == '__main__':
         # nadam = keras.optimizers.Nadam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
         model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
 
-        history = model.fit(x=X_train, y=y_train_labels, epochs=60,
+        history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
         # save model.
         model_name = 'models/finetuned_models_protected_attributes2/adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'

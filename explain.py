@@ -30,7 +30,6 @@ def get_relevance(model_path, inputs, no_relu=True, save_path=None):
         joblib.dump(scores, save_path)
     return scores
 
-
 def get_critical_neurons(scores, percent):
     results = []
     layer_num = len(scores)

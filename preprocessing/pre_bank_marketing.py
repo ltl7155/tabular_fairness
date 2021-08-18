@@ -1,11 +1,6 @@
 """
 This python file preprocesses the Census Income Dataset.
 """
-import sys 
-
-print (sys.argv)
-exit()
-
 
 import os 
 import numpy as np
@@ -41,7 +36,7 @@ if no_cache  :
     
     
     # load bank dataset
-    data_path = os.path.join(cur_dir,'../datasets/bank-full.csv')
+    data_path = os.path.join(cur_dir,'datasets/bank-full.csv')
     df = pd.read_csv(data_path, sep=";", encoding='latin-1')
     
     
