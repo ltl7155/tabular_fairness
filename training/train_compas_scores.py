@@ -7,13 +7,13 @@ import sys, os
 sys.path.append("..")
 sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
 from preprocessing import pre_compas_scores
-import tensorflow as tf
 from tensorflow import keras
-from tensorflow import set_random_seed
-from numpy.random import seed
+# from tensorflow import set_random_seed
 
-seed(1)
-set_random_seed(2)
+import tensorflow as tf
+import numpy as np 
+np.random.seed(1)
+tf.random.set_seed(1)
 
 # create and train a six-layer neural network for the binary classification task
 model = keras.Sequential([
