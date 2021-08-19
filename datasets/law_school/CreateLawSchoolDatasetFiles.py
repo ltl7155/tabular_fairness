@@ -66,6 +66,32 @@ with open(output_file_path, mode="w") as output_file:
     test_df.to_csv(output_file,index=False,columns=columns,header=False)
     output_file.close()
 
+feature_names = [
+            "zfygpa",  # numerical feature: standardized 1st year GPA
+            "zgpa",  # numerical feature: standardized overall GPA
+            "DOB_yr",  # numerical feature: year of birth
+            "weighted_lsat_ugpa",  # numerical feature: weighted index using 60% of LSAT and 40% UGPA
+            "cluster_tier",  # numerical feature: prestige ranking of cluster
+            "family_income",  # numerical feature: family income
+            "lsat",  # numerical feature: LSAT score
+            "ugpa",  # numerical feature: undegraduate GPA
+            "isPartTime",  # categorical feature: is part-time status
+            "sex",  # categorical feature: sex
+            "race",  # categorical feature: race
+            "pass_bar"  # binary target variable: has passed bar
+        ]
+output_file_path = os.path.join(dataset_base_dir,'train_test_with_columnsname.csv')
+with open(output_file_path, mode="w") as output_file:
+    df.to_csv(output_file,index=False,columns=feature_names,header=True)
+    output_file.close()
+
+
+# print (np.unique(df["pass_bar"]),"pass_bar")
+# print (np.unique(df["sex"]),"sex")
+# print (np.unique(df["race"]),"race")
+# print ("==="*8)
+
+
 IPS_example_weights_without_label = {
   0: (len(train_df))/(len(train_df[(train_df.race != 'Black') & (train_df.sex != 'Female')])), # 00: White Male
   1: (len(train_df))/(len(train_df[(train_df.race != 'Black') & (train_df.sex == 'Female')])), # 01: White Female

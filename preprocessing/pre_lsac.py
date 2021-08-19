@@ -40,78 +40,20 @@ cache_file= "/tmp/lsac_cached.npz"
 no_cache  = not os.path.isfile(cache_file)
 
 if no_cache  :
-    '''
-    
-    '''
-    
-    import json
-    import tensorflow.compat.v1 as tf
-    try:
-        from tensorflow.contrib import lookup as contrib_lookup
-    except ImportError as ex:
-        from tensorflow import lookup as  contrib_lookup
 
-    
-    IPS_WITH_LABEL_TARGET_COLUMN_NAME = "IPS_example_weights_with_label"
-    IPS_WITHOUT_LABEL_TARGET_COLUMN_NAME = "IPS_example_weights_without_label"
-    SUBGROUP_TARGET_COLUMN_NAME = "subgroup"
-    
-    
-    class LawSchoolInput():
-      """Data reader for Law School dataset."""
-    
-      def __init__(self,
-                   dataset_base_dir,
-                   train_file=None,
-                   test_file=None):
-        """Data reader for Law School dataset.
-    
-        Args:
-          dataset_base_dir: (string) directory path.
-          train_file: string list of training data paths.
-          test_file: string list of evaluation data paths.
-    
-          dataset_base_sir must contain the following files in the dir:
-          - train.csv: comma separated training data without header.
-          Column order must match the order specified in self.feature_names.
-          - test.csv: comma separated training data without header.
-          Column order must match the order specified in self.feature_names.
-          - mean_std.json: json dictionary of format {feature_name: [mean, std]},
-          containing mean and std for numerical features. For example,
-          "family_income": [4043.745, 12.34],...}.
-          - vocabulary.json: json dictionary of the format {feature_name:
-          [feature_vocabulary]}, containing vocabulary for categorical features. For
-          example, {sex": ["Female", "Male"],...}.
-          - IPS_example_weights_with_label.json: json dictionary of the format
-          {subgroup_id : inverse_propensity_score,...}. For example,
-          {"0": 2.34,...}.
-          - IPS_example_weights_without_label.json: json dictionary of the format
-          {subgroup_id : inverse_propensity_score,...}. For example,
-          {"0": 2.34, ...}.
-    
-        """
-    
-        # pylint: disable=long-line,line-too-long
-        self._dataset_base_dir = dataset_base_dir
-    
-        if train_file:
-          self._train_file = train_file
-        else:
-          self._train_file = ["{}/train.csv".format(self._dataset_base_dir)]
-    
-        if test_file:
-          self._test_file = test_file
-        else:
-          self._test_file = ["{}/test.csv".format(self._dataset_base_dir)]
-    
-        self._mean_std_file = "{}/mean_std.json".format(self._dataset_base_dir)
-        self._vocabulary_file = "{}/vocabulary.json".format(self._dataset_base_dir)
-        self._ips_with_label_file = "{}/IPS_example_weights_with_label.json".format(
-            self._dataset_base_dir)
-        self._ips_without_label_file = "{}/IPS_example_weights_without_label.json".format(self._dataset_base_dir)
-    
-        # Refer to http://www.seaphe.org/databases.php for full explanation of features_names
-        self.feature_names = [
+    import numpy as np
+    import pandas as pd
+
+    # import tensorflow as tf
+    from sklearn.model_selection import train_test_split
+    from collections import defaultdict
+    from sklearn import preprocessing as sk_preprocessing
+    import  random 
+
+    """
+    https://github.com/google-research/google-research/tree/master/group_agnostic_fairness/data_utils
+    """
+    FEATURES_CLASSIFICATION  = [
             "zfygpa",  # numerical feature: standardized 1st year GPA
             "zgpa",  # numerical feature: standardized overall GPA
             "DOB_yr",  # numerical feature: year of birth
@@ -123,260 +65,144 @@ if no_cache  :
             "isPartTime",  # categorical feature: is part-time status
             "sex",  # categorical feature: sex
             "race",  # categorical feature: race
-            "pass_bar"  # binary target variable: has passed bar
+            # "pass_bar"  # binary target variable: has passed bar
         ]
-        # pylint: enable=long-line,line-too-long
+    CONT_VARIABLES = ["zfygpa",  # numerical feature: standardized 1st year GPA
+            "zgpa",  # numerical feature: standardized overall GPA
+            "DOB_yr",  # numerical feature: year of birth
+            "weighted_lsat_ugpa",  # numerical feature: weighted index using 60% of LSAT and 40% UGPA
+            "cluster_tier",  # numerical feature: prestige ranking of cluster
+            "family_income",  # numerical feature: family income
+            "lsat",  # numerical feature: LSAT score
+            "ugpa",
+            "race",#3 
+            ] # continuous features, will need to be handled separately from categorical features, categorical features will be encoded using one-hot
+    CLASS_FEATURE = "pass_bar" # the decision variable
+    SENSITIVE_ATTRS = ["race","sex"]
+
+    # make outputs stable across runs
+    np.random.seed(42)
+    # tf.random.set_seed(42)
+    random.seed(42)
+
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    # load german credit risk dataset
+    data_path = os.path.join(cur_dir,'../datasets/law_school/train_test_with_columnsname.csv')
+    # df = pd.read_csv(data_path)
+    na_values = []
+    df = pd.read_csv(data_path)#, index_col='id', na_values=na_values)
+    df = df.dropna(subset=["race","sex","pass_bar"]) # dropping missing vals
+
+    vob_isPartTime={'No':0, 'Yes':1,}
+    vob_race={'White':0, 'Other':1,'Black':2, }
+    vob_sex={'Female':0, 'Male':1, }
+    vob_pass_bar={'Failed_or_not_attempted':0, 'Passed':1}
     
-        self.RECORD_DEFAULTS = [[0.0], [0.0], [0.0], [0.0], [0.0], [0.0],  # pylint: disable=invalid-name
-                                [0.0], [0.0], ["?"], ["?"], ["?"], ["?"]]
+    df_str_2_int = lambda x,vob_dict :vob_dict[x] 
+    df["isPartTime"] =df["isPartTime"].apply(df_str_2_int,args=(vob_isPartTime,))
+    df["race"] =df["race"].apply(df_str_2_int,args=(vob_race,))
+    df["sex"] =df["sex"].apply(df_str_2_int,args=(vob_sex,))
+    df["pass_bar"] =df["pass_bar"].apply(df_str_2_int,args=(vob_pass_bar,))
     
-        self.target_column_name = "pass_bar"
-        self.target_column_positive_value = "Passed"
+    """ Feature normalization and one hot encoding """
+    y = df[CLASS_FEATURE].values
     
-        # # Following params are tied to subgroups in targets["subgroup"]
-        # # and _ips_without_label_file and _ips_without_label_file.
-        self.sensitive_column_names = ["sex", "race"]
-        self.sensitive_column_values = ["Female", "Black"]
-        self.weight_column_name = "instance_weight"
-    
-      def get_input_fn(self, mode, batch_size=128):
-        """Gets input_fn for Law School data.
-    
-        Args:
-          mode: The execution mode, as defined in tf.estimator.ModeKeys.
-          batch_size: An integer specifying batch_size.
-    
-        Returns:
-          An input_fn.
-        """
-    
-        def _input_fn():
-          """Input_fn for the dataset."""
-          if mode == tf.estimator.ModeKeys.TRAIN:
-            filename_queue = tf.train.string_input_producer(self._train_file)
-          elif mode == tf.estimator.ModeKeys.EVAL:
-            filename_queue = tf.train.string_input_producer(self._test_file)
-    
-          # Extracts basic features and targets from filename_queue
-          features, targets = self.extract_features_and_targets(
-              filename_queue, batch_size)
-    
-          # Adds subgroup information to targets. Used to plot metrics.
-          targets = self._add_subgroups_to_targets(features, targets)
-    
-          # Adds ips_example_weights to targets
-          targets = self._add_ips_example_weights_to_targets(targets)
-    
-          # Unused in robust_learning models. Adding it for min-diff approaches.
-          # Adding instance weight to features.
-          features[self.weight_column_name] = tf.ones_like(
-              targets[self.target_column_name], dtype=tf.float32)
-    
-          return features, targets
-    
-        return _input_fn
-    
-      def extract_features_and_targets(self, filename_queue, batch_size):
-        """Extracts features and targets from filename_queue."""
-        reader = tf.TextLineReader()
-        _, value = reader.read(filename_queue)
-        feature_list = tf.decode_csv(value, record_defaults=self.RECORD_DEFAULTS)
-    
-        # Setting features dictionary.
-        features = dict(zip(self.feature_names, feature_list))
-        features = self._binarize_protected_features(features)
-        features = tf.train.batch(features, batch_size)
-    
-        # Setting targets dictionary.
-        targets = {}
-        targets[self.target_column_name] = tf.reshape(
-            tf.cast(
-                tf.equal(
-                    features.pop(self.target_column_name),
-                    self.target_column_positive_value), tf.float32), [-1, 1])
-        return features, targets
-    
-      def _binarize_protected_features(self, features):
-        """Processes protected features and binarize them."""
-        for sensitive_column_name, sensitive_column_value in zip(
-            self.sensitive_column_names, self.sensitive_column_values):
-          features[sensitive_column_name] = tf.cast(
-              tf.equal(
-                  features.pop(sensitive_column_name), sensitive_column_value),
-              tf.float32)
-        return features
-    
-      def _add_subgroups_to_targets(self, features, targets):
-        """Adds subgroup information to targets dictionary."""
-        for sensitive_column_name in self.sensitive_column_names:
-          targets[sensitive_column_name] = tf.reshape(
-              tf.identity(features[sensitive_column_name]), [-1, 1])
-        return targets
-    
-      def _load_json_dict_into_hashtable(self, filename):
-        """Load json dictionary into a HashTable."""
-        with tf.gfile.Open(filename, "r") as filename:
-          # pylint: disable=g-long-lambda
-          temp_dict = json.load(
-              filename,
-              object_hook=lambda d:
-              {int(k) if k.isdigit() else k: v for k, v in d.items()})
-          # pylint: enable=g-long-lambda
-    
-        keys = list(temp_dict.keys())
-        values = [temp_dict[k] for k in keys]
-        feature_names_to_values = contrib_lookup.HashTable(
-            contrib_lookup.KeyValueTensorInitializer(
-                keys, values, key_dtype=tf.int64, value_dtype=tf.float32), -1)
-        return feature_names_to_values
-    
-      def _add_ips_example_weights_to_targets(self, targets):
-        """Add ips_example_weights to targets. Used in ips baseline model."""
-    
-        # Add subgroup information to targets
-        target_subgroups = (targets[self.target_column_name],
-                            targets[self.sensitive_column_names[1]],
-                            targets[self.sensitive_column_names[0]])
-        targets[SUBGROUP_TARGET_COLUMN_NAME] = tf.map_fn(
-            lambda x: (2 * x[1]) + (1 * x[2]), target_subgroups, dtype=tf.float32)
-    
-        # Load precomputed IPS weights into a HashTable.
-        ips_with_label_table = self._load_json_dict_into_hashtable(self._ips_with_label_file)  # pylint: disable=line-too-long
-        ips_without_label_table = self._load_json_dict_into_hashtable(self._ips_without_label_file)  # pylint: disable=line-too-long
-    
-        # Adding IPS example weights to targets
-        # pylint: disable=g-long-lambda
-        targets[IPS_WITH_LABEL_TARGET_COLUMN_NAME] = tf.map_fn(
-            lambda x: ips_with_label_table.lookup(
-                tf.cast((4 * x[0]) + (2 * x[1]) + (1 * x[2]), dtype=tf.int64)),
-            target_subgroups,
-            dtype=tf.float32)
-        targets[IPS_WITHOUT_LABEL_TARGET_COLUMN_NAME] = tf.map_fn(
-            lambda x: ips_without_label_table.lookup(
-                tf.cast((2 * x[1]) + (1 * x[2]), dtype=tf.int64)),
-            target_subgroups,
-            dtype=tf.float32)
-        # pylint: enable=g-long-lambda
-    
-        return targets
-    
-      def get_feature_columns(self,
-                              embedding_dimension=0,
-                              include_sensitive_columns=True):
-        """Extract feature columns.
-    
-        Categorical features are encoded as categorical columns with vocabulary list
-        (given by vocabulary in vocabulary_file), and saved as either a
-        embedding_column or indicator_column. All numerical columns are normalized
-        (given by mean and std in mean_std_file).
-    
-        Args:
-          embedding_dimension: (int) dimension of the embedding column. If set to 0
-            a multi-hot representation using tf.feature_column.indicator_column is
-            created. If not, a representation using
-            tf.feature_column.embedding_column is created. Consider using
-            embedding_column if the number of buckets (unique values) are large.
-          include_sensitive_columns: boolean flag. If set, sensitive attributes are
-            included in feature_columns.
-    
-        Returns:
-          feature_columns: list of feature_columns.
-          weight_column_name: (string) name of the weight column.
-          feature_names: list of feature_columns.
-          target_column_name: (string) name of the target variable column.
-        """
-        # Load precomputed mean and standard deviation values for features.
-        with tf.gfile.Open(self._mean_std_file, "r") as mean_std_file:
-          mean_std_dict = json.load(mean_std_file)
-        with tf.gfile.Open(self._vocabulary_file, "r") as vocabulary_file:
-          vocab_dict = json.load(vocabulary_file)
-    
-        feature_columns = []
-        for i in range(0, len(self.feature_names)):
-          if (self.feature_names[i] in [
-              self.weight_column_name, self.target_column_name
-          ]):
+    del df[CLASS_FEATURE]
+    data = df.to_dict('list')
+
+    # convert class label 0 to -1
+    # y[y==0] = -1
+    X = np.array([]).reshape(len(y), 0) # empty array with num rows same as num examples, will hstack the features to it
+    x_control = defaultdict(list)
+    # x_control_index = defaultdict(list)
+
+
+    feature_names = []
+    for iidd,attr in enumerate( FEATURES_CLASSIFICATION):
+        vals = data[attr]
+        if attr in CONT_VARIABLES:
+            vals = [float(v) for v in vals]
+            vals = sk_preprocessing.scale(vals) # 0 mean and 1 variance  
+            vals = np.reshape(vals, (len(y), -1)) # convert from 1-d arr to a 2-d arr with one col
+
+        else: # for binary categorical variables, the label binarizer uses just one var instead of two
+            lb = sk_preprocessing.LabelBinarizer()
+            lb.fit(vals)
+            vals = lb.transform(vals)
+
+        # add to sensitive features dict
+        if attr in SENSITIVE_ATTRS:
+            x_control[attr] = vals
+            # x_control_index[attr] = iidd
+        
+        if attr == CLASS_FEATURE:
             continue
-          elif self.feature_names[i] in self.sensitive_column_names:
-            if include_sensitive_columns:
-              feature_columns.append(
-                  tf.feature_column.numeric_column(self.feature_names[i]))
-            else:
-              continue
-          elif self.RECORD_DEFAULTS[i][0] == "?":
-            sparse_column = tf.feature_column.categorical_column_with_vocabulary_list(
-                self.feature_names[i], vocab_dict[self.feature_names[i]])
-            if embedding_dimension > 0:
-              feature_columns.append(
-                  tf.feature_column.embedding_column(sparse_column,
-                                                     embedding_dimension))
-            else:
-              feature_columns.append(
-                  tf.feature_column.indicator_column(sparse_column))
-          else:
-            mean, std = mean_std_dict[self.feature_names[i]]
-            feature_columns.append(
-                tf.feature_column.numeric_column(
-                    self.feature_names[i],
-                    normalizer_fn=(lambda x, m=mean, s=std: (x - m) / s)))
-        return feature_columns, self.weight_column_name, self.sensitive_column_names, self.target_column_name
+
+        # add to learnable features
+        X = np.hstack((X, vals))
+        feature_names.append(attr)
+        # if attr in CONT_VARIABLES: # continuous feature, just append the name
+        #     feature_names.append(attr)
+        # else: # categorical features
+        #     if vals.shape[1] == 1: # binary features that passed through lib binarizer
+        #         feature_names.append(attr)
+        #     else:
+        #         pass 
+        #         # for k in lb.classes_: # non-binary categorical features, need to add the names for each cat
+        #             # feature_names.append(attr + "_" + str(k))
 
 
-    current_dir=os.path.dirname(os.path.abspath(__file__) )
-    dataset_dir = os.path.join(  current_dir ,"..", "datasets/law_school/")
-    
-    
-    load_dataset = LawSchoolInput(
-        dataset_base_dir=dataset_dir,
-        train_file=None,
-        test_file=None,
-        )
+    # convert the sensitive feature to 1-d array
+    x_control = dict(x_control)
+    for k in list(x_control.keys()):
+        # assert(x_control[k].shape[1] == 1) # make sure that the sensitive feature is binary after one hot encoding
+        x_control[k] = np.array(x_control[k]).flatten()
 
-    FLAGS_batch_size=100 
-    FLAGS_embedding_dimension = 32
-    FLAGS_include_sensitive_columns= False 
-    
-    
-    train_input_fn = load_dataset.get_input_fn(
-          mode=tf.estimator.ModeKeys.TRAIN, batch_size=FLAGS_batch_size)
-    test_input_fn = load_dataset.get_input_fn(
-        mode=tf.estimator.ModeKeys.EVAL, batch_size=FLAGS_batch_size)
-    
-    feature_columns, _, protected_groups, label_column_name = (
-          load_dataset.get_feature_columns(
-              embedding_dimension=FLAGS_embedding_dimension,
-              include_sensitive_columns=FLAGS_include_sensitive_columns))
+    # sys.exit(1)
 
-    train_input_fn_obj  = train_input_fn()
-    print (dir(train_input_fn_obj))
-    try :
-        iterator = train_input_fn_obj.make_one_shot_iterator()
-    except Exception as ex:
-        print (ex)    
-    print ("===="*8)
-    
-    try :
-        iterator = train_input_fn_obj.take(1)
-    except Exception as ex:
-        print (ex)    
-    print ("!!!!"*8)
-    
-    
-    for data in train_input_fn_obj:
-        print ("type.data", type(data))
-        x,y = data[:2]
-        print (type(x),"x->",type(y))
-    print ("feature_columns,protected_groups,label_column_name",type(feature_columns),
-           type(protected_groups),
-           type(label_column_name),
-           )
+    """permute the date randomly"""
+    #perm = list(range(0,X.shape[0]))
+    #random.shuffle(perm)
+    #X = X[perm]
+    #y = y[perm]
+    #for k in list(x_control.keys()):
+    #    x_control[k] = x_control[k][perm]
 
+
+    # X = add_intercept(X)
+    # feature_names = ["intercept"] + feature_names
+    assert len(feature_names) == X.shape[1], (feature_names,len(feature_names),"feature_names", X.shape,"X.shape","list.data",list(data),len(list(data)) )
+    # print("Features we will be using for classification are:", feature_names, "\n")
+
+    pretected_attr= ["race","sex"]
+    pretected_attr_int = [feature_names.index(x) for x in pretected_attr]
+
+    X_train_all, X_test, y_train_all, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_train_all, y_train_all, test_size=0.2, random_state=42)
+    
+    # set constraints for each attribute, 117936000 data points in the input space
+    constraint = np.vstack((X.min(axis=0), X.max(axis=0))).T
+    
+    # for census income data, age(0), race(6) and gender(7) are protected attributes in 12 features
+    protected_attribs = pretected_attr_int#[0, 6, 7]
+
+if no_cache:
+    np.savez(cache_file,
+             X=X,
+             y=y,
+            X_train=X_train,
+            X_val=X_val, y_train=y_train, y_val=y_val,
+            X_train_all=X_train_all, 
+            X_test=X_test, y_train_all=y_train_all, y_test=y_test,
+            constraint=constraint,
+            protected_attribs=protected_attribs,
+            )    
 else:
     data = np.load(cache_file)
     
     X= data["X"]
     y= data["y"]
-
+    
     X_train= data["X_train"]
     X_val= data["X_val"]
     y_train= data["y_train"]
