@@ -122,7 +122,9 @@ if no_cache  :
         vals = data[attr]
         if attr in CONT_VARIABLES:
             vals = [float(v) for v in vals]
-            vals = sk_preprocessing.scale(vals) # 0 mean and 1 variance  
+            if attr!="race":
+                vals = sk_preprocessing.scale(vals) # 0 mean and 1 variance  
+
             vals = np.reshape(vals, (len(y), -1)) # convert from 1-d arr to a 2-d arr with one col
 
         else: # for binary categorical variables, the label binarizer uses just one var instead of two
@@ -186,6 +188,12 @@ if no_cache  :
     # for census income data, age(0), race(6) and gender(7) are protected attributes in 12 features
     protected_attribs = pretected_attr_int#[0, 6, 7]
 
+    #double check 
+    for  att_id in protected_attribs :
+        X[:,att_id]= X[:,att_id].astype(np.int32)
+    
+    for  att_id in protected_attribs :
+        assert len(np.unique(X[:,att_id]) )>1 ,"expect att in [0,1] or [0,1,...N], but get {}".format(np.unique(X[:,att_id]) )
 if no_cache:
     np.savez(cache_file,
              X=X,
