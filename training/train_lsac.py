@@ -14,7 +14,7 @@ from tensorflow import keras
 
 import numpy as np 
 np.random.seed(1)
-tf.random.set_seed(1)
+tf.random.set_random_seed(1)
 
 # create and train a six-layer neural network for the binary classification task
 model = keras.Sequential([
@@ -26,7 +26,6 @@ model = keras.Sequential([
     keras.layers.Dense(1, activation="sigmoid")
 ])
 model.compile(loss="binary_crossentropy", optimizer="nadam", metrics=["accuracy","AUC"])
-
 
 history = model.fit(pre_lsac.X_train, pre_lsac.y_train, epochs=30)
 model.evaluate(pre_lsac.X_test, pre_lsac.y_test) 

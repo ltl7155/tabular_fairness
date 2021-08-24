@@ -86,8 +86,8 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
         for n in pos:
             w = tf.math.subtract(w, d.weights[0][0][n])
 #             w = tf.math.add(w, tf.math.abs(d.weights[0][0][n]))
-        for o in normal:
-            w = tf.math.add(w, tf.math.square(d.weights[0][0][o]))
+#         for o in normal:
+#             w = tf.math.add(w, tf.math.square(d.weights[0][0][o]))
 #             w = tf.math.add(w, d.weights[0][0][n])
 #     for m in range(ds[-1].weights[0].shape[1]):
 #         w = tf.math.add(w, tf.math.abs(ds[-1].weights[0][0][m]))
