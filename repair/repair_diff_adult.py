@@ -232,7 +232,7 @@ def retrain(k, ps, neurons, para_res):
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/gated_models/diff/diff_adult_{args.attr}_gated_{str(top_n)}_diff.h5'
+        model_name = f'models/gated_models_diff/diff_adult_{args.attr}_gated_{str(top_n)}_diff.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], comb_num, need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
