@@ -203,7 +203,7 @@ def retrain(k, ps, neurons, para_res):
     tf_name = 'tf_op_layer_' + name
     diff_name = tf_name + "_diff"
     losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun2, diff_name: my_loss_fun}
-    losses_weights = {'layer6': 400.0, tf_name: 0.1, diff_name: 2}
+    losses_weights = {'layer6': 1000.0, tf_name: 0.1, diff_name: 2}
 
     new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'layer6': "accuracy"})
 #     print(similar_X_train)
