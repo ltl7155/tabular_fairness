@@ -1,4 +1,11 @@
-for ((j=1;j<10;j++))
+for ((i=1;i<21;i++))
 do
-    nohup python repair_bank.py --attr a --p0 $[i] --p1 $[j] --acc_lb 0.88 2>&1 >bank.log &
+  for ((j=1;j<20;j++))
+  do
+#    CUDA_VISIBLE_DEVICES=$[j%8] nohup python repair_adult.py --attr a\&g --p0 $[i] --p1 $[j] --acc_lb 0.825 2>&1 >adult_a\&g.log  &
+     CUDA_VISIBLE_DEVICES=$[j%8] nohup python repair/repair_bank.py --attr a --p0 $[i] --p1 $[j] --acc_lb 0.5 2>&1 >backup/bank_a.log &
+  done
+  sleep 2m
+  wait
+  echo -n "$[i] is finished!";
 done

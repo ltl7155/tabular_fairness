@@ -259,7 +259,7 @@ if __name__ == '__main__':
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
-            file_path = f'records_german_repair/{args.attr}/'
+            file_path = f'records/records_german_repair/{args.attr}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'

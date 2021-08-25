@@ -6,14 +6,13 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
-from preprocessing import pre_bank_marketing
-
 seed(1)
 set_random_seed(2)
 import sys, os
 sys.path.append("..")
 sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
 
+from preprocessing import pre_bank_marketing
 X_train, X_val, y_train, y_val, constraint \
     = pre_bank_marketing.X_train, pre_bank_marketing.X_val, pre_bank_marketing.y_train, pre_bank_marketing.y_val, pre_bank_marketing.constraint
 
@@ -27,8 +26,8 @@ def construct_model(frozen_layers, attr):
     layer1 = keras.layers.Dense(30, activation="relu", name="layer1")
     layer2 = keras.layers.Dense(20, activation="relu", name="layer2")
     layer3 = keras.layers.Dense(15, activation="relu", name="layer3")
-    layer4 = keras.layers.Dense(15, activation="relu", name="layer4")
-    layer5 = keras.layers.Dense(10, activation="relu", name="layer5")
+    layer4 = keras.layers.Dense(10, activation="relu", name="layer4")
+    layer5 = keras.layers.Dense(5, activation="relu", name="layer5")
     # layer6 = keras.layers.Dense(1, activation="sigmoid", name="layer6")
     c = category_map[attr]
     last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
@@ -48,7 +47,7 @@ import argparse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
-    parser.add_argument('--path', default='models/bank_model.h5', help='model_path')
+    parser.add_argument('--path', default='models/retrained_model_EIDIG/bank_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='a', help='protected attributes')
     args = parser.parse_args()
 
@@ -60,8 +59,9 @@ if __name__ == '__main__':
 
     for frozen_layer in frozen_layers:
         model = construct_model(frozen_layer, args.attr)
+#         print(model.get_layer('layer1').get_weights())
         model.load_weights(args.path, by_name=True)
-        # attrs = args.a.split('&')
+#         print(model.get_layer('layer1').get_weights())
         attr = args.attr
         losses = {}
         losses_weights = {}
@@ -84,5 +84,8 @@ if __name__ == '__main__':
         history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
         # save model.
-        model_name = 'models/finetuned_models_protected_attributes2/bank/' + args.attr + '_bank_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+        root_path = 'models/finetuned_models_protected_attributes2/bank/'
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+        model_name =  root_path + args.attr + '_bank_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)

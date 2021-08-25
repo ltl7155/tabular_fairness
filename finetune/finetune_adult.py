@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
-from preprocessing import pre_census_income
+
 
 seed(1)
 set_random_seed(2)
@@ -14,6 +14,7 @@ import sys, os
 sys.path.append("..")
 sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
 
+from preprocessing import pre_census_income
 X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
     pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
 
@@ -62,7 +63,7 @@ import argparse
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
-    parser.add_argument('--path', default='models/retrained_models_EIDIG/adult_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--path', default='models/retrained_model_EIDIG/adult_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='a', help='protected attributes')
     args = parser.parse_args()
 
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     for frozen_layer in frozen_layers:
         model = construct_model(frozen_layer, args.attr)
         model.load_weights(args.path, by_name=True)
-        # attrs = args.a.split('&')
+
         attr = args.attr
         losses = {}
         losses_weights = {}

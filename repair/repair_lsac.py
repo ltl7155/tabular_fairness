@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append("..")
+sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
 from tensorflow import keras
 import os
 import joblib
@@ -24,7 +28,7 @@ KTF.set_session(sess)
 
 def my_loss_fun(y_true, y_pred):
     # do whatever you want
-    return tf.math.sigmoid(y_pred)
+    return y_pred
 
 def construct_model(neurons, top_layer, name, min, max, need_weights=True):
     in_shape = X_train.shape[1:]
@@ -210,7 +214,7 @@ def retrain(k, ps, neurons, para_res):
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/lsac_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
+        model_name = f'models/gated_models/lsac_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -245,9 +249,9 @@ if __name__ == '__main__':
     
     X_test, y_test = pre_lsac.X_test, pre_lsac.y_test
     target_model_path = args.target_model_path
-    data_name = f"data/lsac/lsac-{args.attr}_ids_EIDIG_INF_1.npy"
+    data_name = f"discriminatory_data/lsac/lsac-{args.attr}_ids_EIDIG_INF_1.npy"
     if args.attr == "g&r":
-        data_name = f"data/lsac/lsac-{args.attr}_ids_EIDIG_5_1.npy"
+        data_name = f"discriminatory_data/lsac/lsac-{args.attr}_ids_EIDIG_5_1.npy"
     dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs = pos_map[args.attr]
@@ -275,7 +279,7 @@ if __name__ == '__main__':
         if args.adjust_para:
             paras = [(a/10, b/10) for a in np.arange(-11, 0, 1) for b in np.arange(1, 10, 1)]
         else:
-            paras = [(-args.p0/10, args.p1/10)]
+            paras = [(-args.p0/20, args.p1/20)]
         print("*"*100, paras)
         para_res = dict()
         for k, ps in enumerate(paras):
@@ -283,7 +287,7 @@ if __name__ == '__main__':
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
-            file_path = f'records_lsac_repair/{args.attr}_{args.percent}_{args.weight_threshold}/'
+            file_path = f'records/lsac_repair/{args.attr}_{args.percent}_{args.weight_threshold}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'

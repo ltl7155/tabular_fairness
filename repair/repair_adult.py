@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append("..")
+sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
 from tensorflow import keras
 import os
 import joblib
@@ -24,7 +28,7 @@ KTF.set_session(sess)
 
 def my_loss_fun(y_true, y_pred):
     # do whatever you want
-    return tf.math.sigmoid(y_pred)
+    return y_pred
 
 def construct_model(neurons, top_layer, name, min, max, need_weights=True):
     in_shape = X_train.shape[1:]
@@ -68,29 +72,14 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
         return keras.Model(input, x)
 
     w = 0.
-    
     for i, re in enumerate(neurons):
         neg = re[0]
         pos = re[1]
         d = ds[i]
-        if i == 4:
-            neg = []
-    
-#         normal = [j for j in range(d.weights[0].shape[1]) if j not in neg and j not in pos]
-        normal = [j for j in range(d.weights[0].shape[1])]
         for m in neg:
-#             w = tf.math.add(w, tf.math.abs(d.weights[0][0][m]))
             w = tf.math.add(w, d.weights[0][0][m])
-#             w = tf.math.subtract(w, d.weights[0][0][m])
-#             w = tf.math.add(w, tf.math.sum(tf.math.abs(d.weights[0][0])))
         for n in pos:
             w = tf.math.subtract(w, d.weights[0][0][n])
-#             w = tf.math.add(w, tf.math.abs(d.weights[0][0][n]))
-#         for o in normal:
-#             w = tf.math.add(w, tf.math.square(d.weights[0][0][o]))
-#             w = tf.math.add(w, d.weights[0][0][n])
-#     for m in range(ds[-1].weights[0].shape[1]):
-#         w = tf.math.add(w, tf.math.abs(ds[-1].weights[0][0][m]))
     new_w = tf.identity(tf.reshape(w, [1, 1]), name=name)
 
     model = keras.Model(input, [x, new_w])
@@ -167,8 +156,8 @@ def get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_
             if current_awarded is None:
                 current_awarded = awarded
             else:
-#                 current_awarded = np.intersect1d(current_awarded, awarded)
-                current_awarded = np.union1d(current_awarded, awarded)
+                current_awarded = np.intersect1d(current_awarded, awarded)
+#                 current_awarded = np.union1d(current_awarded, awarded)
         print("current_penalty", current_penalty, "current_awarded", current_awarded)
         neurons.append((current_penalty, current_awarded))
     neurons = neurons[1: (top_n + 1)]
@@ -185,7 +174,7 @@ def retrain(k, ps, neurons, para_res):
     losses_weights = {'layer6': 1.0, tf_name: 1.0}
 
     new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'layer6': "accuracy"})
-    history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=20,
+    history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=10,
                             validation_data=(X_val, {'layer6': y_val, tf_name: y_val}))
 
     re, _ = new_model.predict(X_test)
@@ -216,7 +205,7 @@ def retrain(k, ps, neurons, para_res):
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/adult_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
+        model_name = f'models/gated_models/adult_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -234,7 +223,8 @@ pos_map = { 'a': [0],
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--income_path', default='models/adult_model.h5', help='model_path')
-    parser.add_argument('--target_model_path', default='models/adult_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--target_model_path', 
+                        default='models/retrained_model_EIDIG/adult_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='a', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--p0', type=float, default=1)
@@ -253,7 +243,7 @@ if __name__ == '__main__':
     
     X_test, y_test = pre_census_income.X_test, pre_census_income.y_test
     target_model_path = args.target_model_path
-    data_name = f"data/adult/C-{args.attr}_ids_EIDIG_INF.npy"
+    data_name = f"discriminatory_data/adult/C-{args.attr}_ids_EIDIG_INF.npy"
     dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs = pos_map[args.attr]
@@ -263,7 +253,7 @@ if __name__ == '__main__':
                                         save_path=os.path.join('scores/adult', os.path.basename(args.income_path) + ".score"))
     income_critical = get_critical_neurons(income_train_scores, args.percent)
     finals = []
-    for top_n in [5]:
+    for top_n in [4]:
         protected_critical_ls = []
         for a in attrs:
             path = path_dict[a][top_n - 1]
@@ -281,7 +271,7 @@ if __name__ == '__main__':
         if args.adjust_para:
             paras = [(a/10, b/10) for a in np.arange(-11, 0, 1) for b in np.arange(1, 10, 1)]
         else:
-            paras = [(-args.p0/10, args.p1/10)]
+            paras = [(-args.p0/20, args.p1/20)]
         print("*"*100, paras)
         para_res = dict()
         for k, ps in enumerate(paras):
@@ -289,7 +279,7 @@ if __name__ == '__main__':
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
-            file_path = f'records_adult_repair/{args.attr}_{args.percent}_{args.weight_threshold}_top5_a_square/'
+            file_path = f'records/adult_repair/{args.attr}_{args.percent}_{args.weight_threshold}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'

@@ -1,3 +1,6 @@
+*_test.py
+backup
+models/retrained_model_EIDIG/   
 .ptp-sync-folder
 .DS_Store
 .project

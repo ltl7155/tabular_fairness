@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append("..")
+sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
 from tensorflow import keras
 import os
 import joblib
@@ -59,7 +63,7 @@ def construct_model(neurons, top_layer, name, min, max, comb_num, need_weights=T
     if need_weights:
         fakes = [None for i in range(comb_num)]
         for i in range(comb_num):
-            fakes[i] = Lambda(my_slice, arguments={'n': 0, 'in_len': in_len})(input2)
+            fakes[i] = Lambda(my_slice, arguments={'n': i, 'in_len': in_len})(input2)
 #             fake1 = Lambda(my_slice, arguments={'n': 0, 'in_len': in_len})(input2)
 #             fake2 = Lambda(my_slice, arguments={'n': 1, 'in_len': in_len})(input2)
 #         fakes = [fake1, fake2]
@@ -199,7 +203,7 @@ def retrain(k, ps, neurons, para_res):
     tf_name = 'tf_op_layer_' + name
     diff_name = tf_name + "_diff"
     losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun2, diff_name: my_loss_fun}
-    losses_weights = {'layer6': 150.0, tf_name: 0.1, diff_name: 0.5}
+    losses_weights = {'layer6': 100.0, tf_name: 0.1, diff_name: 0.1}
 
     new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'layer6': "accuracy"})
 #     print(similar_X_train)
@@ -247,7 +251,8 @@ pos_map = { 'a': [0],
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--income_path', default='models/adult_model.h5', help='model_path')
-    parser.add_argument('--target_model_path', default='models/adult_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--target_model_path', 
+                        default='models/retrained_model_EIDIG/adult_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='g', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--p0', type=float, default=-0.6)
@@ -260,12 +265,13 @@ if __name__ == '__main__':
 
     # data preparations
     path_dict = get_path_dict()
-    X_train, X_val, y_train, y_val, y_sex_train, y_sex_val, constraint = joblib.load('data/adult/adult.data')
+    X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
+    pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
     X_test, y_test = pre_census_income.X_test, pre_census_income.y_test
     target_model_path = args.target_model_path
     
     in_len = X_train.shape[1]
-    data_name = f"data/adult/C-{args.attr}_ids_EIDIG_INF.npy"
+    data_name = f"discriminatory_data/adult/C-{args.attr}_ids_EIDIG_INF.npy"
     dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs = pos_map[args.attr]

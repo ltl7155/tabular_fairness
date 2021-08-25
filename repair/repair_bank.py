@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append("..")
+sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
 from tensorflow import keras
 import os
 import joblib
@@ -10,6 +14,7 @@ from numpy.random import seed
 import itertools
 import time
 import copy
+
 from preprocessing import pre_bank_marketing
 import argparse
 
@@ -150,8 +155,12 @@ def get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_
 def retrain(k, ps, neurons, para_res):
 
     name = 'my_name_' + str(top_n) + '_' + str(k)
+    
     new_model = construct_model(neurons, top_n, name, ps[0], ps[1])
+    print(new_model.get_layer('layer4').get_weights())
     new_model.load_weights(args.path, by_name=True)
+    print(new_model.get_layer('layer4').get_weights())
+    new_model.summary()
 
     tf_name = 'tf_op_layer_' + name
     losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun}
@@ -202,7 +211,7 @@ def retrain(k, ps, neurons, para_res):
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/bank_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
+        model_name = f'models/gated_models/bank_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -215,7 +224,7 @@ pos_map = { 'a': [0],
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--path', default='models/bank_model.h5', help='model_path')
-    parser.add_argument('--target_model_path', default='models/bank_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--target_model_path', default='models/retrained_model_EIDIG/bank_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='a', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--weight_threshold', type=float, default=0.2)
@@ -238,7 +247,7 @@ if __name__ == '__main__':
     X_test, y_test = pre_bank_marketing.X_test, pre_bank_marketing.y_test
 
     target_model_path = args.target_model_path
-    data_name = f"data/bank/B-{args.attr}_ids_EIDIG_INF.npy"
+    data_name = f"discriminatory_data/bank/B-{args.attr}_ids_EIDIG_INF.npy"
     dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs = pos_map[args.attr]
@@ -268,13 +277,13 @@ if __name__ == '__main__':
         if args.adjust_para:
             paras = [(a / 10, b / 10) for a in np.arange(-20, 20, 1) for b in np.arange(a, 20, 1)]
         else:
-            paras = [(-args.p0/10, args.p1/10)]
+            paras = [(-args.p0/20, args.p1/20)]
         para_res = dict()
         for k, ps in enumerate(paras):
             retrain(k, ps, neurons, para_res)
         for k in para_res.keys():
             print(k, para_res[k])
-            file_path = f'records_bank_repair/{args.attr}/'
+            file_path = f'records/bank_repair/{args.attr}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'

@@ -18,11 +18,11 @@ tf.random.set_random_seed(1)
 
 # create and train a six-layer neural network for the binary classification task
 model = keras.Sequential([
-    keras.layers.Dense(50, activation="relu", input_shape=pre_lsac.X_train.shape[1:]),
-    keras.layers.Dense(30, activation="relu"),
-    keras.layers.Dense(15, activation="relu"),
-    keras.layers.Dense(10, activation="relu"),
-    keras.layers.Dense(5, activation="relu"),
+    keras.layers.Dense(50, activation="relu", input_shape=pre_lsac.X_train.shape[1:], name="layer1"),
+    keras.layers.Dense(30, activation="relu", name="layer2"),
+    keras.layers.Dense(15, activation="relu", name="layer3"),
+    keras.layers.Dense(10, activation="relu", name="layer4"),
+    keras.layers.Dense(5, activation="relu", name="layer5"),
     keras.layers.Dense(1, activation="sigmoid")
 ])
 model.compile(loss="binary_crossentropy", optimizer="nadam", metrics=["accuracy","AUC"])

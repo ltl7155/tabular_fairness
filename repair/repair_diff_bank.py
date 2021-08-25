@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append("..")
+sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
 from tensorflow import keras
 import os
 import joblib
@@ -59,7 +63,7 @@ def construct_model(neurons, top_layer, name, min, max, comb_num, need_weights=T
     if need_weights:
         fakes = [None for i in range(comb_num)]
         for i in range(comb_num):
-            fakes[i] = Lambda(my_slice, arguments={'n': 0, 'in_len': in_len})(input2)
+            fakes[i] = Lambda(my_slice, arguments={'n': i, 'in_len': in_len})(input2)
 #             fake1 = Lambda(my_slice, arguments={'n': 0, 'in_len': in_len})(input2)
 #             fake2 = Lambda(my_slice, arguments={'n': 1, 'in_len': in_len})(input2)
 #         fakes = [fake1, fake2]
@@ -225,7 +229,7 @@ def retrain(k, ps, neurons, para_res):
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/diff_bank_{args.attr}_gated_{str(top_n)}_diff.h5'
+        model_name = f'models/gated_models_diff/diff_bank_{args.attr}_gated_{str(top_n)}_diff.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], comb_num, need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -258,7 +262,7 @@ if __name__ == '__main__':
     target_model_path = args.target_model_path
     
     in_len = X_train.shape[1]
-    data_name = f"data/bank/B-{args.attr}_ids_EIDIG_INF.npy"
+    data_name = f"discriminatory_data/bank/B-{args.attr}_ids_EIDIG_INF.npy"
     dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs = pos_map[args.attr]
