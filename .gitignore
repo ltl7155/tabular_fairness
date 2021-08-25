@@ -1,3 +1,4 @@
+*.swp
 *_test.py
 backup
 models/retrained_model_EIDIG/   
