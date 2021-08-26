@@ -151,7 +151,7 @@ model.fit(
     x=x_train,
     y=y_train,
     validation_data=(x_test,y_test),
-    epochs=1,
+    epochs=10,
 )
 
 
