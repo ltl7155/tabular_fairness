@@ -6,13 +6,15 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
-from preprocessing import pre_german_credit
+
 
 seed(1)
 set_random_seed(2)
 import sys, os
 sys.path.append("..")
 sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
+from preprocessing import pre_german_credit
 
 X_train, X_val, y_train, y_val, constraint \
     = pre_german_credit.X_train, pre_german_credit.X_val, pre_german_credit.y_train, pre_german_credit.y_val, pre_german_credit.constraint

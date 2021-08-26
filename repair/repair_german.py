@@ -1,3 +1,8 @@
+import sys, os
+sys.path.append("..")
+sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
+
 from tensorflow import keras
 import os
 import joblib
@@ -164,10 +169,10 @@ def retrain(k, ps, neurons, para_res):
 
     tf_name = 'tf_op_layer_' + name
     losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun}
-    losses_weights = {'layer6': 1.0, tf_name: 0.1}
+    losses_weights = {'layer6': 1.0, tf_name: 1.0}
 
     new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'layer6': "accuracy"})
-    history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=20,
+    history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=10,
                             validation_data=(X_val, {'layer6': y_val, tf_name: y_val}))
 
     re, _ = new_model.predict(X_test)
@@ -189,7 +194,7 @@ def retrain(k, ps, neurons, para_res):
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/german_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
+        model_name = f'models/gated_models/german_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -204,7 +209,7 @@ pos_map = { 'a': [9],
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--income_path', default='models/german_model.h5', help='model_path')
-    parser.add_argument('--target_model_path', default='models/german_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--target_model_path', default='models/retrained_model_EIDIG/german_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='a', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--weight_threshold', type=float, default=0.2)
@@ -223,7 +228,7 @@ if __name__ == '__main__':
         = pre_german_credit.X_train, pre_german_credit.X_val, pre_german_credit.y_train, pre_german_credit.y_val, pre_german_credit.constraint
     X_test, y_test = pre_german_credit.X_test, pre_german_credit.y_test
     target_model_path = args.target_model_path
-    data_name = f"data/german/G-{args.attr}_ids_EIDIG_INF.npy"
+    data_name = f"discriminatory_data/german/G-{args.attr}_ids_EIDIG_INF.npy"
     dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs = pos_map[args.attr]
@@ -252,7 +257,7 @@ if __name__ == '__main__':
         if args.adjust_para:
             paras = [(a / 10, b / 10) for a in np.arange(-10, 10, 1) for b in np.arange(a, 10, 1)]
         else:
-            paras = [(-args.p0/10, args.p1/10)]
+            paras = [(-args.p0/20, args.p1/20)]
         para_res = dict()
         for k, ps in enumerate(paras):
             retrain(k, ps, neurons, para_res)
@@ -266,22 +271,22 @@ if __name__ == '__main__':
             with open(file_name, 'w') as f:
                 f.write("done")
     print("Retrain is over!")
-    augmented_model = keras.models.load_model(target_model_path)
-    aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
-    aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
-    dis_num = 0
-    newdata_res = []
+#     augmented_model = keras.models.load_model(target_model_path)
+#     aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
+#     aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
+#     dis_num = 0
+#     newdata_res = []
 
-    l = len(similar_X)
-    for i in range(l):
-        newdata_re = augmented_model.predict(similar_X[i])
-        newdata_re = (newdata_re > 0.5).astype(int).flatten()
-        newdata_res.append(newdata_re)
-    repaired_num = get_repaired_num(newdata_res)
+#     l = len(similar_X)
+#     for i in range(l):
+#         newdata_re = augmented_model.predict(similar_X[i])
+#         newdata_re = (newdata_re > 0.5).astype(int).flatten()
+#         newdata_res.append(newdata_re)
+#     repaired_num = get_repaired_num(newdata_res)
 
-    print('Aug', np.sum(aug_val == y_val)/len(y_val))
-    print('Aug', repaired_num/len(dis_data))
+#     print('Aug', np.sum(aug_val == y_val)/len(y_val))
+#     print('Aug', repaired_num/len(dis_data))
 
-    for k in para_res.keys():
-        if para_res[k][0] > 0.7 and para_res[k][1] > 0.7:
-            print(k, para_res[k])
+#     for k in para_res.keys():
+#         if para_res[k][0] > 0.7 and para_res[k][1] > 0.7:
+#             print(k, para_res[k])
