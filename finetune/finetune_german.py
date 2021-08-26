@@ -8,6 +8,7 @@ from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
 
 
+
 seed(1)
 set_random_seed(2)
 import sys, os
