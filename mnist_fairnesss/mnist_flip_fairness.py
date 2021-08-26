@@ -155,13 +155,17 @@ model.fit(
 )
 
 
-predict_metric(model=model,x_data=x_test[index_test_flip],y_data=y_test[index_test_flip],show_text="test_flip")
-predict_metric(model=model,x_data=x_test[index_test_noflip],y_data=y_test[index_test_noflip],show_text="test_ori")
-predict_metric(model=model,x_data=1-x_test[index_test_flip],y_data=y_test[index_test_flip],show_text="fairness_test_flip")
-predict_metric(model=model,x_data=1-x_test[index_test_noflip],y_data=y_test[index_test_noflip],show_text="fairness_test_ori")
+size_t_f= len(index_test_flip)
+size_t_nf= len(index_test_noflip)
+size_t_total = len(x_test)
 
-predict_metric(model=model,x_data=x_test,y_data=y_test,show_text="test_all")
-predict_metric(model=model,x_data=1-x_test,y_data=y_test,show_text="fairness_test_all")
+predict_metric(model=model,x_data=x_test[index_test_flip],y_data=y_test[index_test_flip],show_text="test_flip(size={})".format(size_t_f))
+predict_metric(model=model,x_data=x_test[index_test_noflip],y_data=y_test[index_test_noflip],show_text="test_noflip(size={})".format(size_t_nf))
+predict_metric(model=model,x_data=1-x_test[index_test_flip],y_data=y_test[index_test_flip],show_text="fairness_test_flip(size={})".format(size_t_f))
+predict_metric(model=model,x_data=1-x_test[index_test_noflip],y_data=y_test[index_test_noflip],show_text="fairness_test_noflip(size={})".format(size_t_nf))
+
+predict_metric(model=model,x_data=x_test,y_data=y_test,show_text="test_all(size={})".format(size_t_total))
+predict_metric(model=model,x_data=1-x_test,y_data=y_test,show_text="fairness_test_all(size={})".format(size_t_total))
 
 
 
