@@ -139,6 +139,9 @@ display_images(
 model = tf.keras.models.Sequential([
   tf.keras.layers.Flatten(input_shape=(28, 28)),
   tf.keras.layers.Dense(128,activation='relu'),
+  tf.keras.layers.Dense(64,activation='relu'),
+  tf.keras.layers.Dense(32,activation='relu'),
+  tf.keras.layers.Dense(16,activation='relu'),
   tf.keras.layers.Dense(10)
 ])
 model.compile(
@@ -166,7 +169,6 @@ predict_metric(model=model,x_data=1-x_test[index_test_noflip],y_data=y_test[inde
 
 predict_metric(model=model,x_data=x_test,y_data=y_test,show_text="test_all(size={})".format(size_t_total))
 predict_metric(model=model,x_data=1-x_test,y_data=y_test,show_text="fairness_test_all(size={})".format(size_t_total))
-
 
 
 
