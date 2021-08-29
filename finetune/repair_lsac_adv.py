@@ -101,6 +101,8 @@ if __name__ == '__main__':
         metrics = {}
         y_train_labels = {}
         y_val_labels = {}
+        
+        for attr in attrs:
         last_layer_name = 'layer_' + attr
         losses["layer6"] = 'binary_crossentropy'
         if attr == "g":
