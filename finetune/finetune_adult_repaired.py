@@ -18,19 +18,31 @@ sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") fo
 X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
     pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
 
-# a = X_train[:, 0]
-# r = X_train[:, 6]
-# g = X_train[:, 7]
-# print(np.unique(a, return_counts=True))
-# print(np.unique(r, return_counts=True))
-# print(np.unique(g, return_counts=True))
-
-# y_train_race = to_categorical(X_train[:, 6], num_classes=5)
-# y_val_race = to_categorical(X_val[:, 6], num_classes=5)
-# print(y_train_income.shape, y_train_race.shape)
-# print(np.unique(y_train_race, return_counts=True))
-#
-# data = np.load("data/C-g_ids_EIDIG_INF_1_5db56c7ebc46082e507dc3145ff8fcd6.npy")
+def construct_model(frozen_layers, attr):
+    in_shape = X_train.shape[1:]
+    input = keras.Input(shape=in_shape)
+    layer1 = keras.layers.Dense(30, activation="relu", name="layer1")
+    layer2 = keras.layers.Dense(20, activation="relu", name="layer2")
+    layer3 = keras.layers.Dense(15, activation="relu", name="layer3")
+    layer4 = keras.layers.Dense(15, activation="relu", name="layer4")
+    layer5 = keras.layers.Dense(10, activation="relu", name="layer5")
+    # layer6 = keras.layers.Dense(1, activation="sigmoid", name="layer6")
+    c = category_map[attr]
+    if attr == 'g':
+        last_layer = keras.layers.Dense(c, activation="sigmoid", name='layer_' + attr)
+    else:
+        last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
+    layer_lst = [layer1, layer2, layer3, layer4, layer5]
+    for layer in layer_lst[0: frozen_layers]:
+        layer.trainable = False
+    x = input
+    for i, l in enumerate(layer_lst):
+        x = l(x)
+    # y_income = layer6(x)
+    y = last_layer(x)
+    model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, last_layer])
+    # return keras.Model(input, y_race)
+    return model
 
 
 import argparse
