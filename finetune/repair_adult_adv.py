@@ -109,10 +109,10 @@ if __name__ == '__main__':
         new_model = construct_model(frozen_layer, args.attr, adv=False)
         saved_model.set_weights(model.get_weights())
         saved_model.trainable = True
-        tf.keras.models.save_model(saved_model, model_name)
+        
         # save model.
         file_path = '../models/retrained_adv/adult/'
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         model_name = file_path + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
-        keras.models.save_model(model, model_name)
+        tf.keras.models.save_model(saved_model, model_name)
