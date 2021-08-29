@@ -65,59 +65,56 @@ if __name__ == '__main__':
                'r': 5,
                'g': 1,
                }
-    frozen_layers = [1, 2, 3, 4, 5]
-
-    for frozen_layer in frozen_layers:
-        model = construct_model(frozen_layer, args.attr, adv=True)
+    model = construct_model(frozen_layer, args.attr, adv=True)
 #         model.load_weights(args.path, by_name=True)
-        attr = args.attr
-        losses = {}
-        losses_weights = {}
-        metrics = {}
-        y_train_labels = {}
-        y_val_labels = {}
-        last_layer_name = 'layer_' + attr
-        losses["layer6"] = 'binary_crossentropy'
-        if attr == "g":
-            losses[last_layer_name] = 'mean_squared_error'
-        else:
-            losses[last_layer_name] = 'mean_squared_error'
-        losses_weights["layer6"] = 1.0
-        losses_weights[last_layer_name] = - 1.0
-        
-        metrics[last_layer_name] = "accuracy"
-        metrics["layer6"] = "accuracy"
-        
-        y_train_labels['layer6'] = y_train
-        y_val_labels['layer6'] = y_val
-        if attr == "g":
-            y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
-            y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
-        elif attr == "a":
-            y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]]-1,
-                                                             num_classes=category_map[attr])
-            y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]]-1,
-                                                               num_classes=category_map[attr])
-        elif attr == "r":
-            y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]],
-                                                             num_classes=category_map[attr])
-            y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]],
-                                                               num_classes=category_map[attr])
+    attr = args.attr
+    losses = {}
+    losses_weights = {}
+    metrics = {}
+    y_train_labels = {}
+    y_val_labels = {}
+    last_layer_name = 'layer_' + attr
+    losses["layer6"] = 'binary_crossentropy'
+    if attr == "g":
+        losses[last_layer_name] = 'mean_squared_error'
+    else:
+        losses[last_layer_name] = 'mean_squared_error'
+    losses_weights["layer6"] = 1.0
+    losses_weights[last_layer_name] = - 1.0
 
-        # nadam = keras.optimizers.Nadam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
-        model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
+    metrics[last_layer_name] = "accuracy"
+    metrics["layer6"] = "accuracy"
 
-        history = model.fit(x=X_train, y=y_train_labels, epochs=1, validation_data=(X_val, y_val_labels))
+    y_train_labels['layer6'] = y_train
+    y_val_labels['layer6'] = y_val
+    if attr == "g":
+        y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
+        y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
+    elif attr == "a":
+        y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]]-1,
+                                                         num_classes=category_map[attr])
+        y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]]-1,
+                                                           num_classes=category_map[attr])
+    elif attr == "r":
+        y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]],
+                                                         num_classes=category_map[attr])
+        y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]],
+                                                           num_classes=category_map[attr])
 
-        
-        # save model.
-        file_path = '../models/retrained_adv/'
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-        model_name = (file_path + args.attr + '_adult_multi_model_' + str(frozen_layer) + '.h5')
-        tf.keras.models.save_model(model, model_name)
+    # nadam = keras.optimizers.Nadam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
+    model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
 
-        saved_model = construct_model(frozen_layer, args.attr, adv=False)
-        saved_model.load_weights(model_name, by_name=True)
-        model_name = (file_path + args.attr + '_adult_model_' + str(frozen_layer) + '.h5')
-        tf.keras.models.save_model(saved_model, model_name)
+    history = model.fit(x=X_train, y=y_train_labels, epochs=1, validation_data=(X_val, y_val_labels))
+
+
+    # save model.
+    file_path = '../models/retrained_adv/'
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    model_name = (file_path + args.attr + '_adult_multi_model_' + str(frozen_layer) + '.h5')
+    tf.keras.models.save_model(model, model_name)
+
+    saved_model = construct_model(frozen_layer, args.attr, adv=False)
+    saved_model.load_weights(model_name, by_name=True)
+    model_name = (file_path + args.attr + '_adult_model_' + str(frozen_layer) + '.h5')
+    tf.keras.models.save_model(saved_model, model_name)
