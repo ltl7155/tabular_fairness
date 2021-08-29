@@ -111,6 +111,7 @@ if __name__ == '__main__':
         
         model.summary()
         saved_model = construct_model(frozen_layer, args.attr, adv=False)
+        saved_model.summary()
         saved_model.set_weights(model.get_weights())
         saved_model.trainable = True
         
