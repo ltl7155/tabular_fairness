@@ -102,15 +102,16 @@ if __name__ == '__main__':
         y_train_labels = {}
         y_val_labels = {}
         last_layer_name = 'layer_' + attr
-
+        losses["layer6"] = 'binary_crossentropy'
         if attr == "g":
             losses[last_layer_name] = 'binary_crossentropy'
         else:
             losses[last_layer_name] = 'categorical_crossentropy'
-
-        losses_weights[last_layer_name] = 1.0
+        losses_weights["layer6"] = 1.0
+        losses_weights[last_layer_name] = -1.0
         metrics[last_layer_name] = "accuracy"
-
+        metrics["layer6"] = "accuracy"
+        
         if attr == "g":
             y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
             y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
