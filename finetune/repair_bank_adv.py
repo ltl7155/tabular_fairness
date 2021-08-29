@@ -20,7 +20,7 @@ a = X_train[:, 0]
 print(np.unique(a, return_counts=True))
 
 
-def construct_model(frozen_layers, attr):
+def construct_model(frozen_layers, attr, adv):
     in_shape = X_train.shape[1:]
     input = keras.Input(shape=in_shape)
     layer1 = keras.layers.Dense(30, activation="relu", name="layer1")
