@@ -106,8 +106,8 @@ if __name__ == '__main__':
         history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
         
-        model = construct_model(frozen_layer, args.attr, adv=False)
-        saved_model.set_weights(new_model.get_weights())
+        new_model = construct_model(frozen_layer, args.attr, adv=False)
+        saved_model.set_weights(model.get_weights())
         saved_model.trainable = True
         tf.keras.models.save_model(saved_model, model_name)
         # save model.
