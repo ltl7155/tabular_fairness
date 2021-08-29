@@ -122,9 +122,14 @@ if __name__ == '__main__':
 #         print(newdata_re.shape)
         
         history = model.fit(x=X_train, y=y_train_labels, epochs=60, validation_data=(X_val, y_val_labels))
-        # save model.
-        root_path = 'models/finetuned_models_protected_attributes2/lsac/'
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
-        model_name = root_path + args.attr + '_lsac_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
-        keras.models.save_model(model, model_name)
+            # save model.
+        file_path = '../models/retrained_adv/'
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        model_name = (file_path + args.attr + '_bank_multi_model_' + str(frozen_layer) + '.h5')
+        tf.keras.models.save_model(model, model_name)
+
+        saved_model = construct_model(frozen_layer, args.attr, adv=False)
+        saved_model.load_weights(model_name, by_name=True)
+        model_name = (file_path + args.attr + '_bank_model_' + str(frozen_layer) + '.h5')
+        tf.keras.models.save_model(saved_model, model_name)
