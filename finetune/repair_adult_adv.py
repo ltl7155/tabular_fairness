@@ -86,6 +86,7 @@ if __name__ == '__main__':
         losses_weights[last_layer_name] = - 1.0
         
         metrics[last_layer_name] = "accuracy"
+        
         if attr == "g":
             y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
             y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
