@@ -114,7 +114,8 @@ if __name__ == '__main__':
         file_path = '../models/retrained_adv/'
         if not os.path.exists(file_path):
             os.makedirs(file_path)
-        model_name = file_path + args.attr + '_adult_multi_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+        model_name = (file_path + args.attr + '_adult_multi_model_' + str(frozen_layer) + "_" 
+                      + str(round(history.history["val_acc"][-1], 3)) + '.h5')
         tf.keras.models.save_model(saved_model, model_name)
 
         saved_model = construct_model(frozen_layer, args.attr, adv=False)
