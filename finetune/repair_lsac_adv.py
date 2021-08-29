@@ -27,7 +27,7 @@ g = X_train[:, 9]
 print(np.unique(r, return_counts=True))
 print(np.unique(g, return_counts=True))
 
-exit()
+# exit()
 
 # y_train_race = to_categorical(X_train[:, 6], num_classes=5)
 # y_val_race = to_categorical(X_val[:, 6], num_classes=5)
