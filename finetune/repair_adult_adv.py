@@ -121,7 +121,6 @@ if __name__ == '__main__':
 
     history = model.fit(x=X_train, y=y_train_labels, epochs=30, validation_data=(X_val, y_val_labels))
 
-
     # save model.
     file_path = '../models/retrained_adv/'
     if not os.path.exists(file_path):
