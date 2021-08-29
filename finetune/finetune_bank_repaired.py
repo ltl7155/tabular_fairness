@@ -13,7 +13,7 @@ set_random_seed(2)
 import sys, os
 sys.path.append("..")
 sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
-
+from scalelayer import  ScaleLayer
 from preprocessing import pre_bank_marketing
 X_train, X_val, y_train, y_val, constraint \
     = pre_bank_marketing.X_train, pre_bank_marketing.X_val, pre_bank_marketing.y_train, pre_bank_marketing.y_val, pre_bank_marketing.constraint
