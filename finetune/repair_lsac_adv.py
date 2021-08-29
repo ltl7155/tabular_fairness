@@ -37,7 +37,7 @@ print(np.unique(g, return_counts=True))
 # data = np.load("data/C-g_ids_EIDIG_INF_1_5db56c7ebc46082e507dc3145ff8fcd6.npy")
 
 
-def construct_model(frozen_layers, attr):
+def construct_model(frozen_layers, attr, adv):
     in_shape = X_train.shape[1:]
     input = keras.Input(shape=in_shape)
     layer1 = keras.layers.Dense(50, activation="relu", name="layer1")
