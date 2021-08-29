@@ -79,7 +79,7 @@ if __name__ == '__main__':
         last_layer_name = 'layer_' + attr
         losses["layer6"] = 'binary_crossentropy'
         if attr == "g":
-            losses[last_layer_name] = 'binary_crossentropy'
+            losses[last_layer_name] = 'mean_squared_error'
         else:
             losses[last_layer_name] = 'mean_squared_error'
         losses_weights["layer6"] = 1.0
