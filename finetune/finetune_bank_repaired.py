@@ -34,6 +34,9 @@ def construct_model(frozen_layers, attr):
     c = category_map[attr]
     last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
+    
+    layer_lst = layer_lst[frozen_layers:]
+    
     for layer in layer_lst[0: frozen_layers]:
         layer.trainable = False
     x = input
