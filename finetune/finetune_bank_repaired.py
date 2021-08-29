@@ -21,7 +21,7 @@ print(np.unique(a, return_counts=True))
 
 
 def construct_model(frozen_layers, attr):
-    in_shape = X_train.shape[1:]
+    in_shape = inner_output_train.shape[1:]
     input = keras.Input(shape=in_shape)
     layer1 = keras.layers.Dense(30, activation="relu", name="layer1")
     layer2 = keras.layers.Dense(20, activation="relu", name="layer2")
