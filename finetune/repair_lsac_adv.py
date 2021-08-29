@@ -100,7 +100,6 @@ if __name__ == '__main__':
         model.load_weights(args.path, by_name=True)
 #         print(model.get_layer('layer1').get_weights())
         model.summary()
-
         
         losses = {}
         losses_weights = {}
@@ -114,6 +113,7 @@ if __name__ == '__main__':
                 losses[last_layer_name] = 'mean_squared_error'
             else:
                 losses[last_layer_name] = 'mean_squared_error'
+                
             if attr == "g":
                 y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
                 y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
