@@ -93,14 +93,14 @@ if __name__ == '__main__':
         history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
         
-        # save model.
-    file_path = '../models/retrained_adv/'
-    if not os.path.exists(file_path):
-        os.makedirs(file_path)
-    model_name = (file_path + args.attr + '_bank_multi_model_' + str(frozen_layer) + '.h5')
-    tf.keras.models.save_model(model, model_name)
+            # save model.
+        file_path = '../models/retrained_adv/'
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        model_name = (file_path + args.attr + '_bank_multi_model_' + str(frozen_layer) + '.h5')
+        tf.keras.models.save_model(model, model_name)
 
-    saved_model = construct_model(frozen_layer, args.attr, adv=False)
-    saved_model.load_weights(model_name, by_name=True)
-    model_name = (file_path + args.attr + '_bank_model_' + str(frozen_layer) + '.h5')
-    tf.keras.models.save_model(saved_model, model_name)
+        saved_model = construct_model(frozen_layer, args.attr, adv=False)
+        saved_model.load_weights(model_name, by_name=True)
+        model_name = (file_path + args.attr + '_bank_model_' + str(frozen_layer) + '.h5')
+        tf.keras.models.save_model(saved_model, model_name)
