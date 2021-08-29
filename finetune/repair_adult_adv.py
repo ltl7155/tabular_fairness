@@ -50,8 +50,8 @@ def construct_model(frozen_layers, adv):
     y_advs = []
     
     if adv:
-        for attr in attrs:
-            y_adv = last_layer(x)
+        for index, attr in enumerate(attrs):
+            y_adv = last_layers[index](x)
             y_advs.append(y_adv)
         
         model = keras.Model(input, [y_income, *y_advs])
