@@ -61,6 +61,10 @@ if __name__ == '__main__':
     category_map = {'a': 5,
                }
     frozen_layers = [1, 2, 3, 4, 5]
+    
+    models_map = {
+        'a': "models/gated_models/adult_a_gated_4_0.3_0.2_p-0.3_p0.15.h5",
+    }
 
     for frozen_layer in frozen_layers:
         model = construct_model(frozen_layer, args.attr)
