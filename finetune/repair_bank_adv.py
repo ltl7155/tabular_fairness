@@ -75,9 +75,14 @@ if __name__ == '__main__':
         last_layer_name = 'layer_' + attr
 
         losses[last_layer_name] = 'categorical_crossentropy'
+        losses["layer6"] = 'binary_crossentropy'
         losses_weights[last_layer_name] = 1.0
+        losses_weights[last_layer_name] = - 1.0
+        metrics["layer6"] = "accuracy"
         metrics[last_layer_name] = "accuracy"
-
+        
+        y_train_labels['layer6'] = y_train
+        y_val_labels['layer6'] = y_val
         y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]]-1,
                                                          num_classes=category_map[attr])
         y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]]-1,
@@ -88,6 +93,14 @@ if __name__ == '__main__':
         history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
         # save model.
+        saved_model = construct_model(frozen_layer, args.attr, adv=False)
+        saved_model.set_weights(model.get_weights())
+        saved_model.trainable = True
+        
+        # save model.
+        file_path = '../models/retrained_adv/'
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
         root_path = 'models/finetuned_models_protected_attributes2/bank/'
         if not os.path.exists(root_path):
             os.makedirs(root_path)
