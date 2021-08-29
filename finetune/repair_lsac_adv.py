@@ -64,10 +64,14 @@ def construct_model(frozen_layers, attr, adv):
     if adv:
         y = last_layer(x)
         
-    model = keras.Model(input, [y_income])
+    y_advs = []
+    
     if adv:
-        y_adv = last_layer(x)
-        model = keras.Model(input, [y_income, y_adv])
+        for index, attr in enumerate(attrs):
+            y_adv = last_layers[index](x)
+            y_advs.append(y_adv)
+        
+        model = keras.Model(input, [y_income, *y_advs])
     # return keras.Model(input, y_race)
     return model
 
