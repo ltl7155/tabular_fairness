@@ -76,10 +76,9 @@ if __name__ == '__main__':
                }
     
     frozen_layer = 0
+    attrs = args.attr.split('&')
     model = construct_model(frozen_layer, args.attr, adv=True)
 #         model.load_weights(args.path, by_name=True)
-    attrs = args.attr.split('&')
-    
     losses = {}
     losses_weights = {}
     metrics = {}
