@@ -74,7 +74,7 @@ if __name__ == '__main__':
         y_val_labels = {}
         last_layer_name = 'layer_' + attr
 
-        losses[last_layer_name] = 'categorical_crossentropy'
+        losses[last_layer_name] = 'mean_squared_error'
         losses["layer6"] = 'binary_crossentropy'
         losses_weights["layer6"] = 1.0
         losses_weights[last_layer_name] = - 1.0
