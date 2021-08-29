@@ -124,13 +124,13 @@ if __name__ == '__main__':
                                                                  num_classes=category_map[attr])
                 y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]],
                                                                num_classes=category_map[attr])
-            losses_weights[last_layer_name] = -1
+            losses_weights[last_layer_name] = -1.0
             metrics[last_layer_name] = "accuracy"
 
         
         losses["layer6"] = 'binary_crossentropy'
         
-        losses_weights["layer6"] = 0
+        losses_weights["layer6"] = 1.0
         
         metrics["layer6"] = "accuracy"
         
