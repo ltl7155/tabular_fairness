@@ -119,5 +119,5 @@ if __name__ == '__main__':
         tf.keras.models.save_model(saved_model, model_name)
 
         saved_model = construct_model(frozen_layer, args.attr, adv=False)
-        saved_model.set_weights(model.get_weights())
+        saved_model.load_weights(model_name, by_name=True)
         saved_model.trainable = True
