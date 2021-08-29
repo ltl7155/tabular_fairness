@@ -56,8 +56,7 @@ def construct_model(frozen_layers, attr, adv):
                 last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
             last_layers.append(last_layer)
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
-    for layer in layer_lst[0: frozen_layers]:
-        layer.trainable = False
+
     x = input
     for i, l in enumerate(layer_lst):
         x = l(x)
