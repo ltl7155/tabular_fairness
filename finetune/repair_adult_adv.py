@@ -87,8 +87,8 @@ if __name__ == '__main__':
         
         metrics[last_layer_name] = "accuracy"
         
-        y_train_labels['layer6'] = 
-        y_val_labels['layer6'] = 
+        y_train_labels['layer6'] = y_train
+        y_val_labels['layer6'] = y_val
         if attr == "g":
             y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
             y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
