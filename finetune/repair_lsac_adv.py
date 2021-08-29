@@ -61,7 +61,7 @@ def construct_model(frozen_layers, adv):
     for i, l in enumerate(layer_lst):
         x = l(x)
     y_income = layer5(x)
-    y_income = layer6(x)
+    y_income = layer6(y_income)
     model = keras.Model(input, [y_income])
         
     y_advs = []
