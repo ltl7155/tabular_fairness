@@ -84,7 +84,7 @@ if __name__ == '__main__':
     
     models_map = {
         'g': "models/gated_models/lsac_g_gated_4_0.3_0.2_p-0.85_p0.2.h5",
-        'r': "models/gated_models/adult_g_gated_4_0.3_0.2_p-0.6_p0.1.h5",
+        'r': "models/gated_models/lsac_r_gated_4_0.3_0.2_p-0.9_p0.05.h5",
     }
 
     for frozen_layer in frozen_layers:
