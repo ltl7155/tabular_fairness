@@ -101,8 +101,5 @@ if __name__ == '__main__':
         file_path = '../models/retrained_adv/'
         if not os.path.exists(file_path):
             os.makedirs(file_path)
-        root_path = 'models/finetuned_models_protected_attributes2/bank/'
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
         model_name =  root_path + args.attr + '_bank_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)
