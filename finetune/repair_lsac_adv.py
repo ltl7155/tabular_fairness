@@ -55,7 +55,7 @@ def construct_model(frozen_layers, adv):
             else:
                 last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
             last_layers.append(last_layer)
-    layer_lst = [layer1, layer2, layer3, layer4, layer5]
+    layer_lst = [layer1, layer2, layer3, layer4]
 
     x = input
     for i, l in enumerate(layer_lst):
