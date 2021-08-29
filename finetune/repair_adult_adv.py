@@ -28,6 +28,7 @@ def construct_model(frozen_layers, attr, adv):
     layer4 = keras.layers.Dense(15, activation="relu", name="layer4")
     layer5 = keras.layers.Dense(10, activation="relu", name="layer5")
     layer6 = keras.layers.Dense(1, activation="sigmoid", name="layer6")
+    last_layers = []
     if adv:
         for attr in attrs:
             c = category_map[attr]
