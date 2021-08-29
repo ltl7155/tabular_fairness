@@ -67,10 +67,13 @@ if __name__ == '__main__':
     }
 
     for frozen_layer in frozen_layers:
-        model = construct_model(frozen_layer, args.attr)
-#         print(model.get_layer('layer1').get_weights())
-        model.load_weights(args.path, by_name=True)
-#         print(model.get_layer('layer1').get_weights())
+        model_path = models_map[args.attr]
+        base_model = keras.models.load_model(model_path, custom_objects={'ScaleLayer': ScaleLayer})
+        layer_name = "scale_layer_" + str(frozen_layer+4)
+        inner_model = Model(base_model.input, base_model.get_layer(layer_name).output)                                 
+        inner_output_train = inner_model.predict(pre_census_income.X_train)
+        inner_output_val = inner_model.predict(pre_census_income.X_val)
+        
         attr = args.attr
         losses = {}
         losses_weights = {}
