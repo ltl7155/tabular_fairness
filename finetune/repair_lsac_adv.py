@@ -45,12 +45,13 @@ def construct_model(frozen_layers, attr, adv):
     layer3 = keras.layers.Dense(15, activation="relu", name="layer3")
     layer4 = keras.layers.Dense(10, activation="relu", name="layer4")
     layer5 = keras.layers.Dense(5, activation="relu", name="layer5")
-    # layer6 = keras.layers.Dense(1, activation="sigmoid", name="layer6")
-    c = category_map[attr]
-    if attr == 'g':
-        last_layer = keras.layers.Dense(c, activation="sigmoid", name='layer_' + attr)
-    else:
-        last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
+    layer6 = keras.layers.Dense(1, activation="sigmoid", name="layer6")
+    if adv:
+        c = category_map[attr]
+        if attr == 'g':
+            last_layer = keras.layers.Dense(c, activation="sigmoid", name='layer_' + attr)
+        else:
+            last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
     for layer in layer_lst[0: frozen_layers]:
         layer.trainable = False
