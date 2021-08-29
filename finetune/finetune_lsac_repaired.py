@@ -129,9 +129,9 @@ if __name__ == '__main__':
 #         newdata_re = model.predict(X_train)
 #         print(newdata_re.shape)
         
-        history = model.fit(x=X_train, y=y_train_labels, epochs=60, validation_data=(X_val, y_val_labels))
+        history = model.fit(x=X_train, y=y_train_labels, epochs=30, validation_data=(X_val, y_val_labels))
         # save model.
-        root_path = 'models/finetuned_models_protected_attributes2/lsac/'
+        root_path = 'models/finetuned_models_protected_attributes3/lsac/'
         if not os.path.exists(root_path):
             os.makedirs(root_path)
         model_name = root_path + args.attr + '_lsac_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
