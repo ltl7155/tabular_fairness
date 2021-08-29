@@ -64,8 +64,11 @@ if __name__ == '__main__':
         model_path = models_map[args.attr]
         model = keras.models.load_model(model_path, custom_objects={'ScaleLayer': ScaleLayer})
         
-        inter_model = Model(model.input, model.get_layer(layer_name).output)                                 
-        inter_output_ori = inter_model.predict(pre_census_income.X_train)
+        inner_model = Model(model.input, model.get_layer(layer_name).output)                                 
+        inner_output_ori = inter_model.predict(pre_census_income.X_train)
+        
+        
+        
         # attrs = args.a.split('&')
         attr = args.attr
         losses = {}
