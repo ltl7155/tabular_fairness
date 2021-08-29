@@ -32,11 +32,12 @@ def construct_model(frozen_layers, attr):
     c = category_map[attr]
     last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
-
+    for layer in layer_lst[0: frozen_layers]:
+        layer.trainable = False
     x = input
     for i, l in enumerate(layer_lst):
         x = l(x)
-    y_income = layer6(x)
+    # y_income = layer6(x)
     y = last_layer(x)
     model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, last_layer])
     # return keras.Model(input, y_race)
