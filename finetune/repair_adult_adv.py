@@ -106,13 +106,10 @@ if __name__ == '__main__':
         history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
         
-        if args.saved:
-            # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-            model_name = f'models/gated_models/adult_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
-            saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
-            saved_model.set_weights(new_model.get_weights())
-            saved_model.trainable = True
-            tf.keras.models.save_model(saved_model, model_name)
+        saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
+        saved_model.set_weights(new_model.get_weights())
+        saved_model.trainable = True
+        tf.keras.models.save_model(saved_model, model_name)
         # save model.
         file_path = '../models/retrained_adv/adult/'
         if not os.path.exists(file_path):
