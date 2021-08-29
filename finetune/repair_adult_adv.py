@@ -47,10 +47,9 @@ def construct_model(frozen_layers, attr, adv):
     y_income = layer6(x)
     model = keras.Model(input, [y_income])
     
-    y_advs = []
     if adv:
-        y_adv.append(last_layer(x))
-        model = keras.Model(input, [y_income, y_advs])
+        y_adv = last_layer(x)
+        model = keras.Model(input, [y_income, y_adv])
         
     return model
 
