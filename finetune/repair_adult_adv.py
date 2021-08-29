@@ -36,6 +36,7 @@ def construct_model(frozen_layers, attr, adv):
                 last_layer = keras.layers.Dense(c, activation="sigmoid", name='layer_' + attr)
             else:
                 last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
+            last_layers.append()
             
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
 
