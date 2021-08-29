@@ -145,8 +145,7 @@ if __name__ == '__main__':
         print(model.predict(X_train[:10]))
 
         history = model.fit(x=X_train, y=y_train_labels, epochs=100, validation_data=(X_val, y_val_labels))
-        print(model.predict(X_train[:10]))
-        exit()
+
         print(model.get_layer('layer_g').get_weights())
         # save model.
         file_path = '../models/retrained_adv/'
