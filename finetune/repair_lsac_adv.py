@@ -61,8 +61,7 @@ def construct_model(frozen_layers, attr, adv):
     for i, l in enumerate(layer_lst):
         x = l(x)
     y_income = layer6(x)
-    if adv:
-        y = last_layer(x)
+    
         
     y_advs = []
     
