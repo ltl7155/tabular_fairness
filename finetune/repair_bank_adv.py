@@ -94,7 +94,7 @@ if __name__ == '__main__':
                             validation_data=(X_val, y_val_labels))
         # save model.
         saved_model = construct_model(frozen_layer, args.attr, adv=False)
-        saved_model.set_weights(model.get_weights())
+        saved_model.set_weights(model.get_weights(), by_name=True)
         saved_model.trainable = True
         
         # save model.
