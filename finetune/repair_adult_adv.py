@@ -45,6 +45,7 @@ def construct_model(frozen_layers, attr):
         
     model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, layer6])
     
+    model = keras.Model(input, [x, new_w])
     # return keras.Model(input, y_race)
     return model
 
