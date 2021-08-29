@@ -29,8 +29,8 @@ model = keras.Sequential([
 model.compile(loss="binary_crossentropy", optimizer="nadam", metrics=["accuracy"])
 
 # uncomment for training6
-history = model.fit(pre_german_credit.X_train, pre_german_credit.y_train, epochs=60)
-model.evaluate(pre_german_credit.X_test, pre_german_credit.y_test) # 78.25% accuracy
+# history = model.fit(pre_german_credit.X_train, pre_german_credit.y_train, epochs=60)
+# model.evaluate(pre_german_credit.X_test, pre_german_credit.y_test) # 78.25% accuracy
 # model.save("models/models_from_tests/german_model.h5")
 
 
