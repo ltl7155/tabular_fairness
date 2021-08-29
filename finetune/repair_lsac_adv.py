@@ -141,6 +141,7 @@ if __name__ == '__main__':
 #         print(newdata_re.shape)
         
         history = model.fit(x=X_train, y=y_train_labels, epochs=1, validation_data=(X_val, y_val_labels))
+        print(model.get_layer('scale_layer_5').get_weights())
         # save model.
         file_path = '../models/retrained_adv/'
         if not os.path.exists(file_path):
