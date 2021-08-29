@@ -78,11 +78,26 @@ if __name__ == '__main__':
     y_val_labels = {}
     for attr in attrs:
         last_layer_name = 'layer_' + attr
+        if attr == "g":
+            losses[last_layer_name] = 'mean_squared_error'
+        else:
+            losses[last_layer_name] = 'mean_squared_error'      
+        if attr == "g":
+            y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
+            y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
+        elif attr == "a":
+            y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]]-1,
+                                                             num_classes=category_map[attr])
+            y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]]-1,
+                                                               num_classes=category_map[attr])
+        elif attr == "r":
+            y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]],
+                                                             num_classes=category_map[attr])
+            y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]],
+                                                           num_classes=category_map[attr])
+            
     losses["layer6"] = 'binary_crossentropy'
-    if attr == "g":
-        losses[last_layer_name] = 'mean_squared_error'
-    else:
-        losses[last_layer_name] = 'mean_squared_error'
+    
     losses_weights["layer6"] = 1.0
     losses_weights[last_layer_name] = - 1.0
 
@@ -91,19 +106,6 @@ if __name__ == '__main__':
 
     y_train_labels['layer6'] = y_train
     y_val_labels['layer6'] = y_val
-    if attr == "g":
-        y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
-        y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
-    elif attr == "a":
-        y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]]-1,
-                                                         num_classes=category_map[attr])
-        y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]]-1,
-                                                           num_classes=category_map[attr])
-    elif attr == "r":
-        y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]],
-                                                         num_classes=category_map[attr])
-        y_val_labels[last_layer_name] = to_categorical(X_val[:, pos_map[attr]],
-                                                           num_classes=category_map[attr])
 
     # nadam = keras.optimizers.Nadam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
     model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
