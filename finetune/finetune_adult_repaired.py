@@ -79,7 +79,8 @@ if __name__ == '__main__':
         model = keras.models.load_model(model_path, custom_objects={'ScaleLayer': ScaleLayer})
         
         inner_model = Model(model.input, model.get_layer(layer_name).output)                                 
-        inner_output = inner_model.predict(pre_census_income.X_train)
+        inner_output_train = inner_model.predict(pre_census_income.X_train)
+        inner_output_val = inner_model.predict(pre_census_income.X_train)
         
         # attrs = args.a.split('&')
         attr = args.attr
