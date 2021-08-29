@@ -43,7 +43,7 @@ def construct_model(frozen_layers, attr):
     if adv:
         y_adv = last_layer(x)
         
-    model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, layer6])
+#     model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, layer6])
     
     model = keras.Model(input, [y_income, y_adv])
     # return keras.Model(input, y_race)
