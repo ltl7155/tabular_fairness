@@ -85,6 +85,7 @@ if __name__ == '__main__':
         inner_output_train = inner_model.predict(pre_census_income.X_train)
         inner_output_val = inner_model.predict(pre_census_income.X_train)
         
+        model = construct_model(frozen_layer, args.attr)
         
         # attrs = args.a.split('&')
         attr = args.attr
