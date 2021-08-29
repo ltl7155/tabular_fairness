@@ -86,10 +86,10 @@ if __name__ == '__main__':
                'r': 3,
                'g': 1,
                }
-    frozen_layers = [1, 2, 3, 4, 5]
+    frozen_layers = [0]
 
     for frozen_layer in frozen_layers:
-        model = construct_model(frozen_layer, args.attr)
+        model = construct_model(frozen_layer, args.attr, adv=True)
 #         print(model.get_layer('layer1').get_weights())
         model.load_weights(args.path, by_name=True)
 #         print(model.get_layer('layer1').get_weights())
