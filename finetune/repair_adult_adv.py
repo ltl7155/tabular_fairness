@@ -39,8 +39,9 @@ def construct_model(frozen_layers, attr):
     x = input
     for i, l in enumerate(layer_lst):
         x = l(x)
-    # y_income = layer6(x)
+    y_income = layer6(x)
     y = last_layer(x)
+    
     model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, last_layer])
     # return keras.Model(input, y_race)
     return model
