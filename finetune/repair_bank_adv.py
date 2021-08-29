@@ -40,9 +40,10 @@ def construct_model(frozen_layers, attr, adv):
     for i, l in enumerate(layer_lst):
         x = l(x)
     y_income = layer6(x)
+    model = keras.Model(input, [y_income])
     if adv:
-        y = last_layer(x)
-    model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, last_layer])
+        y_adv = last_layer(x)
+        model = keras.Model(input, [y_income, y_adv])
     # return keras.Model(input, y_race)
     return model
 
