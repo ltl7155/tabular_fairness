@@ -117,6 +117,7 @@ if __name__ == '__main__':
                 
             if attr == "g":
                 y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
+                
                 y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
             elif attr == "r":
                 y_train_labels[last_layer_name] = to_categorical(X_train[:, pos_map[attr]],
@@ -126,6 +127,7 @@ if __name__ == '__main__':
             losses_weights[last_layer_name] = -10.0
             metrics[last_layer_name] = "accuracy"
 
+        
         losses["layer6"] = 'binary_crossentropy'
         
         losses_weights["layer6"] = 0
