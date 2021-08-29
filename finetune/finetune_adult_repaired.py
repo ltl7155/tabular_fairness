@@ -22,7 +22,8 @@ X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
     pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
 
 def construct_model(frozen_layers, attr):
-    in_shape = X_train.shape[1:]
+    in_shape = inner_output_train.shape[1:]
+ 
     input = keras.Input(shape=in_shape)
     layer1 = keras.layers.Dense(30, activation="relu", name="layer1")
     layer2 = keras.layers.Dense(20, activation="relu", name="layer2")
