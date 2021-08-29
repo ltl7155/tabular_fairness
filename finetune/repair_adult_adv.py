@@ -41,7 +41,7 @@ def construct_model(frozen_layers, attr):
         x = l(x)
     y_income = layer6(x)
     if adv:
-        y = last_layer(x)
+        y_adv = last_layer(x)
         
     model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, layer6])
     
