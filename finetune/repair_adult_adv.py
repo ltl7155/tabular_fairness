@@ -86,6 +86,8 @@ if __name__ == '__main__':
     y_train_labels = {}
     y_val_labels = {}
     for attr in attrs:
+        losses_weights[last_layer_name] = -1.0
+        metrics[last_layer_name] = "accuracy"
         last_layer_name = 'layer_' + attr
         if attr == "g":
             losses[last_layer_name] = 'mean_squared_error'
@@ -108,9 +110,7 @@ if __name__ == '__main__':
     losses["layer6"] = 'binary_crossentropy'
     
     losses_weights["layer6"] = 1.0
-    losses_weights[last_layer_name] = -1.0
-
-    metrics[last_layer_name] = "accuracy"
+    
     metrics["layer6"] = "accuracy"
 
     y_train_labels['layer6'] = y_train
