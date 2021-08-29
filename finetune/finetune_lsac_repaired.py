@@ -83,7 +83,7 @@ if __name__ == '__main__':
     frozen_layers = [1, 2, 3, 4, 5]
     
     models_map = {
-        'g': "models/gated_models/adult_r_gated_4_0.3_0.2_p-0.95_p0.8.h5",
+        'g': "models/gated_models/lsac_g_gated_4_0.3_0.2_p-0.85_p0.2.h5",
         'r': "models/gated_models/adult_g_gated_4_0.3_0.2_p-0.6_p0.1.h5",
     }
 
