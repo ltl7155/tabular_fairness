@@ -103,8 +103,7 @@ if __name__ == '__main__':
         # nadam = keras.optimizers.Nadam(lr=0.0002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
         model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
 
-        history = model.fit(x=X_train, y=y_train_labels, epochs=30,
-                            validation_data=(X_val, y_val_labels))
+        history = model.fit(x=X_train, y=[y_train, y_train_labels], epochs=30, validation_data=(X_val, [y_val, y_val_labels])
         
         new_model = construct_model(frozen_layer, args.attr, adv=False)
         saved_model.set_weights(model.get_weights())
