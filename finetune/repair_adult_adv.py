@@ -86,6 +86,7 @@ if __name__ == '__main__':
         losses_weights[last_layer_name] = - 1.0
         
         metrics[last_layer_name] = "accuracy"
+        metrics["layer6"] = "accuracy"
         
         y_train_labels['layer6'] = y_train
         y_val_labels['layer6'] = y_val
