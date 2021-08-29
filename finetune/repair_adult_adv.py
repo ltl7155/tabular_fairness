@@ -77,6 +77,7 @@ if __name__ == '__main__':
         y_train_labels = {}
         y_val_labels = {}
         last_layer_name = 'layer_' + attr
+        losses[last_layer_name] = 'binary_crossentropy'
         if attr == "g":
             losses[last_layer_name] = 'binary_crossentropy'
         else:
