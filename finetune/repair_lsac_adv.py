@@ -142,11 +142,11 @@ if __name__ == '__main__':
         
 #         newdata_re = model.predict(X_train)
 #         print(newdata_re.shape)
-        print(model.predict(X_train[:10]))
+#         print(model.predict(X_train[:10]))
 
         history = model.fit(x=X_train, y=y_train_labels, epochs=100, validation_data=(X_val, y_val_labels))
 
-        print(model.get_layer('layer_g').get_weights())
+#         print(model.get_layer('layer_g').get_weights())
         # save model.
         file_path = '../models/retrained_adv/'
         if not os.path.exists(file_path):
