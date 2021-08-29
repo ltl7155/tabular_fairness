@@ -1,3 +1,7 @@
+import sys, os
+sys.path.append("..")
+sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
 from tensorflow import keras
 import os
 import joblib
@@ -11,9 +15,7 @@ from scalelayer import  ScaleLayer
 
 seed(1)
 set_random_seed(2)
-import sys, os
-sys.path.append("..")
-sys.path.extend([os.path.join(root, name) for root, dirs, _ in os.walk("../") for name in dirs])
+
 
 X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
     pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
