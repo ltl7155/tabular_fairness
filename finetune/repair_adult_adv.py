@@ -108,7 +108,7 @@ if __name__ == '__main__':
     losses["layer6"] = 'binary_crossentropy'
     
     losses_weights["layer6"] = 1.0
-    losses_weights[last_layer_name] = - 1.0
+    losses_weights[last_layer_name] = - 10.0
 
     metrics[last_layer_name] = "accuracy"
     metrics["layer6"] = "accuracy"
