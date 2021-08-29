@@ -110,9 +110,9 @@ if __name__ == '__main__':
         for attr in attrs:
             last_layer_name = 'layer_' + attr
             if attr == "g":
-                losses[last_layer_name] = 'binary_crossentropy'
+                losses[last_layer_name] = 'mean_squared_error'
             else:
-                losses[last_layer_name] = 'categorical_crossentropy'
+                losses[last_layer_name] = 'mean_squared_error'
             if attr == "g":
                 y_train_labels[last_layer_name] = X_train[:, pos_map[attr]]
                 y_val_labels[last_layer_name] = X_val[:, pos_map[attr]]
