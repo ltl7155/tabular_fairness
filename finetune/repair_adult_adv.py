@@ -34,20 +34,19 @@ def construct_model(frozen_layers, attr):
             last_layer = keras.layers.Dense(c, activation="sigmoid", name='layer_' + attr)
         else:
             last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
+            
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
 
     x = input
     for i, l in enumerate(layer_lst):
         x = l(x)
+        
     y_income = layer6(x)
     model = keras.Model(input, [y_income])
     if adv:
         y_adv = last_layer(x)
         model = keras.Model(input, [y_income, y_adv])
-#     model = keras.Sequential([input, layer1, layer2, layer3, layer4, layer5, layer6])
-    
         
-    # return keras.Model(input, y_race)
     return model
 
 import argparse
