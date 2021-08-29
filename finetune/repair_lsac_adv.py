@@ -95,7 +95,7 @@ if __name__ == '__main__':
 #         print(model.get_layer('layer1').get_weights())
         model.summary()
 
-        attrs = args.attr
+        attrs = args.attr.split('&')
         losses = {}
         losses_weights = {}
         metrics = {}
