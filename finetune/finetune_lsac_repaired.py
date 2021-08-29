@@ -18,6 +18,7 @@ from preprocessing import pre_lsac
 X_train, X_val, y_train, y_val, constraint \
     = pre_lsac.X_train, pre_lsac.X_val, pre_lsac.y_train, pre_lsac.y_val, pre_lsac.constraint
 
+from scalelayer import  ScaleLayer
 print(len(X_train[0]))
 print(pre_lsac.protected_attribs)
 
