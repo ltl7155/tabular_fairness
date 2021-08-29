@@ -41,7 +41,6 @@ def construct_model(frozen_layers, attr):
     
     layer_lst = layer_lst[frozen_layers:]
     
-    print)_
     x = input
     for i, l in enumerate(layer_lst):
         x = l(x)
