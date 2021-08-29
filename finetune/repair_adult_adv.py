@@ -65,6 +65,8 @@ if __name__ == '__main__':
                'r': 5,
                'g': 1,
                }
+    
+    frozen_layer = 0
     model = construct_model(frozen_layer, args.attr, adv=True)
 #         model.load_weights(args.path, by_name=True)
     attr = args.attr
