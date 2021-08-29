@@ -86,9 +86,10 @@ if __name__ == '__main__':
     y_train_labels = {}
     y_val_labels = {}
     for attr in attrs:
+        
+        last_layer_name = 'layer_' + attr
         losses_weights[last_layer_name] = -1.0
         metrics[last_layer_name] = "accuracy"
-        last_layer_name = 'layer_' + attr
         if attr == "g":
             losses[last_layer_name] = 'mean_squared_error'
         else:
