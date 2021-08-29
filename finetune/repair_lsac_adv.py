@@ -94,13 +94,14 @@ if __name__ == '__main__':
     frozen_layers = [0]
 
     for frozen_layer in frozen_layers:
+        attrs = args.attr.split('&')
         model = construct_model(frozen_layer, args.attr, adv=True)
 #         print(model.get_layer('layer1').get_weights())
         model.load_weights(args.path, by_name=True)
 #         print(model.get_layer('layer1').get_weights())
         model.summary()
 
-        attrs = args.attr.split('&')
+        
         losses = {}
         losses_weights = {}
         metrics = {}
