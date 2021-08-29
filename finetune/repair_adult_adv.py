@@ -48,8 +48,11 @@ def construct_model(frozen_layers, attr, adv):
     model = keras.Model(input, [y_income])
     
     y_advs = []
+    
     if adv:
-        y_adv = last_layer(x)
+        for attr in attrs:
+            y_adv = last_layer(x)
+        
         model = keras.Model(input, [y_income, y_adv])
         
     return model
