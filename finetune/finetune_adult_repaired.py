@@ -114,7 +114,7 @@ if __name__ == '__main__':
         model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
 
         history = model.fit(x=inner_output_train, y=y_train_labels, epochs=30,
-                            validation_data=(X_val, y_val_labels))
+                            validation_data=(inner_output_val, y_val_labels))
         # save model.
         model_name = 'models/finetuned_models_protected_attributes3/adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)
