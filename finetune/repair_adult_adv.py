@@ -108,10 +108,8 @@ if __name__ == '__main__':
         model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
 
         history = model.fit(x=X_train, y=y_train_labels, epochs=1, validation_data=(X_val, y_val_labels))
-        
-        model.summary()
+
         saved_model = construct_model(frozen_layer, args.attr, adv=False)
-        saved_model.summary()
         saved_model.set_weights(model.get_weights())
         saved_model.trainable = True
         
