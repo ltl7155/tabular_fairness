@@ -111,7 +111,7 @@ if __name__ == '__main__':
         for attr in attrs:
             last_layer_name = 'layer_' + attr
             if attr == "g":
-                losses[last_layer_name] = 'mean_squared_error'
+                losses[last_layer_name] = 'binary_crossentropy'
             else:
                 losses[last_layer_name] = 'mean_squared_error'
                 
