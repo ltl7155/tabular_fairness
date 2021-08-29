@@ -143,6 +143,7 @@ if __name__ == '__main__':
 #         newdata_re = model.predict(X_train)
 #         print(newdata_re.shape)
         print(model.predict(X_train[:10]))
+        exit()
         history = model.fit(x=X_train, y=y_train_labels, epochs=5, validation_data=(X_val, y_val_labels))
         print(model.get_layer('layer_g').get_weights())
         # save model.
