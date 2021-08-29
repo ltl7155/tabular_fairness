@@ -68,7 +68,7 @@ if __name__ == '__main__':
     frozen_layers = [1, 2, 3, 4, 5]
 
     for frozen_layer in frozen_layers:
-        model = construct_model(frozen_layer, args.attr)
+        model = construct_model(frozen_layer, args.attr, adv=False)
 #         model.load_weights(args.path, by_name=True)
         attr = args.attr
         losses = {}
