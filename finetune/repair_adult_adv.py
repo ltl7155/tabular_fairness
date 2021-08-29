@@ -120,7 +120,7 @@ if __name__ == '__main__':
     model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics=metrics)
     
     
-    history = model.fit(x=X_train, y=y_train_labels, epochs=0, validation_data=(X_val, y_val_labels))
+    history = model.fit(x=X_train, y=y_train_labels, epochs=30, validation_data=(X_val, y_val_labels))
 
     # save model.
     file_path = '../models/retrained_adv/'
