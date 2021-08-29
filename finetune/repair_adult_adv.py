@@ -18,20 +18,6 @@ from preprocessing import pre_census_income
 X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
     pre_census_income.X_val, pre_census_income.y_train, pre_census_income.y_val, pre_census_income.constraint
 
-# a = X_train[:, 0]
-# r = X_train[:, 6]
-# g = X_train[:, 7]
-# print(np.unique(a, return_counts=True))
-# print(np.unique(r, return_counts=True))
-# print(np.unique(g, return_counts=True))
-
-# y_train_race = to_categorical(X_train[:, 6], num_classes=5)
-# y_val_race = to_categorical(X_val[:, 6], num_classes=5)
-# print(y_train_income.shape, y_train_race.shape)
-# print(np.unique(y_train_race, return_counts=True))
-#
-# data = np.load("data/C-g_ids_EIDIG_INF_1_5db56c7ebc46082e507dc3145ff8fcd6.npy")
-
 
 def construct_model(frozen_layers, attr):
     in_shape = X_train.shape[1:]
