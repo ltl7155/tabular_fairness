@@ -114,7 +114,7 @@ if __name__ == '__main__':
         saved_model.trainable = True
         
         # save model.
-        file_path = '../models/retrained_adv/adult/'
+        file_path = '../models/retrained_adv/'
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         model_name = file_path + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
