@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
-
+import time
 
 seed(1)
 set_random_seed(2)
@@ -93,6 +93,7 @@ if __name__ == '__main__':
                'g': 1,
                }
     frozen_layers = [0]
+    s = time.time()
 
     for frozen_layer in frozen_layers:
         attrs = args.attr.split('&')
@@ -158,3 +159,6 @@ if __name__ == '__main__':
         saved_model.load_weights(model_name, by_name=True)
         model_name = (file_path + args.attr + '_lsac_model_' + str(frozen_layer) + '.h5')
         tf.keras.models.save_model(saved_model, model_name)
+        e = time.time()
+        
+        print("time", e-s)
