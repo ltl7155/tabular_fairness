@@ -150,7 +150,7 @@ def get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_
     neurons = neurons[1: (top_n + 1)]
     return neurons
 
-def retrain(k, ps, neurons, para_res,net_archs):
+def retrain(k, ps, neurons, para_res,net_archs=[64,32,32,16,10]):
 
     name = 'my_name_' + str(top_n) + '_' + str(k)
     new_model = construct_model(net_archs=net_archs,neurons=neurons, top_layer=top_n, name=name,min= ps[0], max=ps[1])
