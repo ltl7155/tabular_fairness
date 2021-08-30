@@ -18,6 +18,7 @@ from preprocessing import pre_lsac
 import tensorflow.keras.backend as KTF
 import argparse
 
+
 seed(1)
 tf.random.set_random_seed(2)
 config = tf.ConfigProto()  
@@ -242,6 +243,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
+    s = time.time()
     # data preparations
     path_dict = get_path_dict()
     X_train, X_val, y_train, y_val, constraint = pre_lsac.X_train, \
