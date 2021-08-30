@@ -9,7 +9,7 @@ import joblib
 import numpy as np
 from tensorflow.keras.utils import to_categorical
 
-tf.random.set_seed(42)
+#tf.random.set_seed(42)
 np.random.seed(42)
 
 import pre_mnist_01
