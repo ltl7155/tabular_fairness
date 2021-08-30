@@ -286,6 +286,8 @@ if __name__ == '__main__':
         para_res = dict()
         for k, ps in enumerate(paras):
             retrain(k, ps, neurons, para_res)
+        e = time.time()
+        print("time", e-s)
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
@@ -311,8 +313,7 @@ if __name__ == '__main__':
 #     print('Aug', np.sum(aug_val == y_val)/len(y_val))
 #     print('Aug', repaired_num/len(dis_data))
 
-    e = time.time()
-    print("time", e-s)
+    
 #     for k in para_res.keys():
 #         if para_res[k][0] > 0.8 and para_res[k][1] > 0.98:
 #             print(k, para_res[k])
