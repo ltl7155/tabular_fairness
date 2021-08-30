@@ -232,7 +232,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--income_path', default='models/lsac_model.h5', help='model_path')
     parser.add_argument('--target_model_path', default='models/lsac_EIDIG_INF_retrained_model.h5', help='model_path')
-    parser.add_argument('--attr', default='r', help='protected attributes')
+    parser.add_argument('--attr', default='g', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--p0', type=float, default=1)
     parser.add_argument('--p1', type=float, default=1)
