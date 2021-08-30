@@ -9,7 +9,7 @@ import hashlib
 md5name= lambda x:hashlib.md5(x if type(x)==bytes else str(x).encode() ).hexdigest()
 
 
-tf.random.set_seed(42)
+#tf.random.set_seed(42)
 np.random.seed(42)
 
 import pre_mnist_01
