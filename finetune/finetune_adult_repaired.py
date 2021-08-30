@@ -37,7 +37,7 @@ def construct_model(frozen_layers, attr):
     else:
         last_layer = keras.layers.Dense(c, activation="softmax", name='layer_' + attr)
         
-    act = layers.Activation(activations.relu)    
+    act = keras.layers.Activation(activations.relu)    
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
     
     layer_lst = layer_lst[frozen_layers:]
