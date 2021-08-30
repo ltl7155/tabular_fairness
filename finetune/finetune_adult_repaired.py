@@ -124,7 +124,9 @@ if __name__ == '__main__':
         history = model.fit(x=inner_output_train, y=y_train_labels, epochs=30,
                             validation_data=(inner_output_val, y_val_labels))
         
-        file_path = 'models/finetuned_models_protected_attributes_4/adult/'
+        root_path = 'models/finetuned_models_protected_attributes_4/adult/'
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
         # save model.
         model_name = file_path + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)
