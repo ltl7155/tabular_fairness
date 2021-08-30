@@ -31,7 +31,7 @@ def my_loss_fun(y_true, y_pred):
     # do whatever you want
     return y_pred
 
-def construct_model(net_archs,neurons, top_layer, name, min, max, need_weights=True):
+def construct_model(neurons, top_layer, name, min, max, net_archs,need_weights=True):
     in_shape = X_train.shape[1:]
     assert X_train.ndim==2
     input = keras.Input(shape=in_shape,name="input")
