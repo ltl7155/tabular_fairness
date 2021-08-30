@@ -13,7 +13,7 @@ import tensorflow.keras.backend as KTF
 import argparse
 
 np.random.seed(42)
-tf.random.set_seed(42)
+#tf.random.set_seed(42)
 
 import pre_mnist_01 
 pre_mnist_01_dataset = pre_mnist_01.func_call( flip_rate=0.2,label_choices=[0,9] )
