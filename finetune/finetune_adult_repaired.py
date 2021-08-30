@@ -123,6 +123,8 @@ if __name__ == '__main__':
 #         print(len(y_val_labels[last_layer_name]))
         history = model.fit(x=inner_output_train, y=y_train_labels, epochs=30,
                             validation_data=(inner_output_val, y_val_labels))
+        
+        file_path = 'models/finetuned_models_protected_attributes_4/'
         # save model.
-        model_name = 'models/finetuned_models_protected_attributes_4/adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+        model_name = 'adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)
