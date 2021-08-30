@@ -13,6 +13,7 @@ from tensorflow.keras.utils import to_categorical
 from preprocessing import pre_census_income
 from scalelayer import  ScaleLayer
 from tensorflow.keras.models import Model
+from tensorflow.keras import activations
 
 seed(1)
 set_random_seed(2)
