@@ -231,12 +231,12 @@ pos_map = {
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--income_path', default='models/lsac_model.h5', help='model_path')
-    parser.add_argument('--target_model_path', default='models/lsac_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--target_model_path', default='models/retrained_model_EIDIG/lsac_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--attr', default='g', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--p0', type=float, default=1)
     parser.add_argument('--p1', type=float, default=1)
-    parser.add_argument('--weight_threshold', type=float, default=0.2)
+    parser.add_argument('--weight_threshold', type=float, default=0.2)retrained_model_EIDIG/
     parser.add_argument('--saved', type=bool, default=False)
     parser.add_argument('--adjust_para', type=bool, default=False)
     parser.add_argument('--acc_lb', type=float, default=0.80)
