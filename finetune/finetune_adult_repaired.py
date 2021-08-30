@@ -126,5 +126,5 @@ if __name__ == '__main__':
         
         file_path = 'models/finetuned_models_protected_attributes_4/'
         # save model.
-        model_name = 'adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+        model_name = file_path + 'adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)
