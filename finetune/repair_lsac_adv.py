@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
 #         print(model.get_layer('layer_g').get_weights())
         # save model.
-        file_path = '../models/retrained_adv/'
+        file_path = 'models/retrained_adv/'
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         model_name = (file_path + args.attr + '_lsac_multi_model_' + str(frozen_layer) + '.h5')
