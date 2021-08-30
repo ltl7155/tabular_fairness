@@ -94,7 +94,7 @@ if __name__ == '__main__':
                             validation_data=(X_val, y_val_labels))
         
             # save model.
-        file_path = '../models/retrained_adv/'
+        file_path = 'models/retrained_adv/'
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         model_name = (file_path + args.attr + '_bank_multi_model_' + str(frozen_layer) + '.h5')
