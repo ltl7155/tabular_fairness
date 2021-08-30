@@ -266,7 +266,7 @@ if __name__ == '__main__':
         print("*"*100, paras)
         para_res = dict()
         for k, ps in enumerate(paras):
-            retrain(k, ps, neurons, para_res)
+            retrain(k, ps, neurons, para_res,net_archs=args.net_archs)
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
