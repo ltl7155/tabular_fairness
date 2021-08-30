@@ -19,6 +19,10 @@ def load_mnist_from_numpy(x_train,
     total 6w -> 
     in order to causly flip the some image, donot load keras.data.load_mnist()
     '''
+    x_train= x_train.reshape(len(x_train),-1)
+    x_test= x_test.reshape(len(x_test),-1)
+    
+    
     flip_size= 0 if flip_rate is None else  round(float(flip_rate)*len(x_train))
     flip_size_test= 0 if flip_rate is None else  round(float(flip_rate)*len(x_test))
     assert len(x_train)>= flip_size
@@ -59,7 +63,7 @@ def load_mnist_from_numpy(x_train,
     assert len(x_train)== len(y_train) and  len(x_test) == len(y_test),\
         ("train.len",len(x_train),"train.y.len", len(y_train) ,"test.x.len" , len(x_test) ,"test.y.len", len(y_test))
     
-    return (x_train,y_train,y_train_protected_one_attr ), \
+    return (x_train.view(),y_train,y_train_protected_one_attr ), \
         (x_val,y_val,y_val_protected_one_attr) , (x_test,y_test,None) 
 
 

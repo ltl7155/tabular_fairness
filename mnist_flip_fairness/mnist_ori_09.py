@@ -30,6 +30,9 @@ def display_images(images, titles=None, cols=8, \
     norm: Optional. A Normalize instance to map values to colors.
     interpolation: Optional. Image interpolation to use for display.
     """
+    if images.ndim ==2 :
+        assert images.shape[-1]==28*28 ,images.shape
+        images=images.reshape(len(images),28,28)
     import matplotlib.pyplot as plt
     if "float" in str(images .dtype) :
         images = images.copy()
@@ -94,7 +97,7 @@ if __name__=="__main__":
     parser.add_argument("-r","--rate",type=float,default=0.2)
     parser.add_argument("-l","--labels",choices=list(map(str, range(0,10))),default=[0,9],nargs="+")
     parser.add_argument("-e","--epochs",default=5,type=int)
-    parser.add_argument("-n","--net_layers",default="32,16",type=str,help="arch by comma")
+    parser.add_argument("-n","--net_layers",default="64,32,32,16,10",type=str,help="arch by comma")
     
     args = parser.parse_args()
     print (args)
@@ -149,7 +152,8 @@ if __name__=="__main__":
              ]
     
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Flatten(input_shape=(28, 28)),
+        keras.Input(shape=(28*28),name="input"),
+        # tf.keras.layers.Flatten(input_shape=(28, 28)),
         *archs,
         tf.keras.layers.Dense(1, activation="sigmoid",name="output")
         ])
@@ -189,9 +193,11 @@ if __name__=="__main__":
     
     args_info_dict.update({"ori_reporter":ret_info_ori["reporter"], "flip_reporter":ret_info_flip["reporter"], })
     
-    model_name = 'models/original/mnist01_model_w_{}.h5'.format(serise_no)
-    # keras.models.save_model(model, model_name)
-    model.save_weights( model_name)
+    model_name = 'models/original/mnist01_model_{}.h5'.format(serise_no)
+    keras.models.save_model(model, model_name)
+    # model.save_weights( model_name)
+    w_name = 'models/original/mnist01_model_onlyweight_{}.h5'.format(serise_no)
+    model.save_weights( w_name)
 
     modelinfo_name = 'models/original/mnist01_model_{}_meta.json'.format(serise_no)
     import json

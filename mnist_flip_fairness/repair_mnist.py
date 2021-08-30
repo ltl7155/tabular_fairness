@@ -15,15 +15,17 @@ import argparse
 np.random.seed(42)
 tf.random.set_seed(42)
 
+import pre_mnist_01 
+pre_mnist_01_dataset = pre_mnist_01.func_call( flip_rate=0.2,label_choices=[0,9] )
 from explain import  get_relevance, get_critical_neurons
 from scalelayer import  ScaleLayer
-from preprocessing import pre_census_income
+# from preprocessing import pre_census_income
 
-config = tf.ConfigProto()  
-config.gpu_options.allow_growth=True 
-sess = tf.Session(config=config)
+# config = tf.ConfigProto()  
+# config.gpu_options.allow_growth=True 
+# sess = tf.Session(config=config)
 
-KTF.set_session(sess)
+# KTF.set_session(sess)
 
 def my_loss_fun(y_true, y_pred):
     # do whatever you want
@@ -31,7 +33,8 @@ def my_loss_fun(y_true, y_pred):
 
 def construct_model(net_archs,neurons, top_layer, name, min, max, need_weights=True):
     in_shape = X_train.shape[1:]
-    input = keras.Input(shape=in_shape)
+    assert X_train.ndim==2
+    input = keras.Input(shape=in_shape,name="input")
 
     layer_lst = [
         keras.layers.Dense(xi, activation="relu", name=f"layer_{ii}")
@@ -71,8 +74,8 @@ def construct_model(net_archs,neurons, top_layer, name, min, max, need_weights=T
     model = keras.Model(input, [x, new_w])
     return model
 
-def get_path_dict():
-    saved_model_path = "models/finetuned_models_protected_attributes2/mnist01/"
+def get_path_dict(saved_model_path):
+    assert os.path.isdir(saved_model_path),saved_model_path
     path_ls = os.listdir(saved_model_path)
     path_dict = {}
     path_dict['background'] = [saved_model_path+p for p in path_ls if "background" in p]
@@ -88,18 +91,20 @@ def my_filter(layer_critical, total_num):
     return i_critical
 
 def similar_set(X, num_attribs, protected_attribs, constraint):
+    assert np.max(X)<=1 , ("max",np.max(X),"min", np.min(X))
+    return 1-X 
     # find all similar inputs corresponding to different combinations of protected attributes with non-protected attributes unchanged
-    similar_X = []
-    protected_domain = []
-    for i in protected_attribs:
-        protected_domain = protected_domain + [list(range(int(constraint[i][0]), int(constraint[i][1]+1)))]
-    all_combs = np.array(list(itertools.product(*protected_domain)))
-    for i, comb in enumerate(all_combs):
-        X_new = copy.deepcopy(X)
-        for a, c in zip(protected_attribs, comb):
-            X_new[:, a] = c
-        similar_X.append(X_new)
-    return similar_X
+    # similar_X = []
+    # protected_domain = []
+    # for i in protected_attribs:
+    #     protected_domain = protected_domain + [list(range(int(constraint[i][0]), int(constraint[i][1]+1)))]
+    # all_combs = np.array(list(itertools.product(*protected_domain)))
+    # for i, comb in enumerate(all_combs):
+    #     X_new = copy.deepcopy(X)
+    #     for a, c in zip(protected_attribs, comb):
+    #         X_new[:, a] = c
+    #     similar_X.append(X_new)
+    # return similar_X
 
 def get_repaired_num(newdata_res):
     # identify whether the instance is discriminatory w.r.t. the model
@@ -187,7 +192,7 @@ def retrain(k, ps, neurons, para_res):
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
-        model_name = f'models/gated_models/lsac_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
+        model_name = f'models/gated_models/mnist01_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
         saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
@@ -195,15 +200,16 @@ def retrain(k, ps, neurons, para_res):
 
     return para_res
 
-pos_map = { 
-            'r': [10],
-            'g': [9],
-            'g&r': [10, 9]
-            }
+# pos_map = { 
+#             'r': [10],
+#             'g': [9],
+#             'g&r': [10, 9]
+#             }
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
-    parser.add_argument('--income_path', default='models/lsac_model.h5', help='model_path')
-    parser.add_argument('--target_model_path', default='models/lsac_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--income_path', default='models/original/mnist01_model_988cf647eee71fb30938c3c2cb0df718.h5', help='model_path')
+    parser.add_argument('--target_model_path', default='models/mnist01_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--finetune_path', default='models/finetuned_models_protected_attributes2/mnist01/', help='finetune')
     parser.add_argument('--attr', default='r', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--p0', type=float, default=1)
@@ -216,30 +222,32 @@ if __name__ == '__main__':
     attrs = args.attr.split("&")
 
     # data preparations
-    path_dict = get_path_dict()
-    X_train, X_val, y_train, y_val, constraint = pre_lsac.X_train, \
-    pre_lsac.X_val, pre_lsac.y_train, pre_lsac.y_val, pre_lsac.constraint
+    path_dict = get_path_dict(args.finetune_path)
+    # X_train, X_val, y_train, y_val, constraint = pre_mnist01.X_train, \
+    # pre_mnist01.X_val, pre_mnist01.y_train, pre_mnist01.y_val, pre_mnist01.constraint
+    X_train, X_val, y_train, y_val, constraint = pre_mnist_01_dataset["X_train"], \
+    pre_mnist_01_dataset["x_val"], pre_mnist_01_dataset["y_train"], pre_mnist_01_dataset["y_val"], pre_mnist_01_dataset["constraint"]
     
-    X_test, y_test = pre_lsac.X_test, pre_lsac.y_test
+    X_test, y_test = pre_mnist_01_dataset["x_test"], pre_mnist_01_dataset["y_test"]
     target_model_path = args.target_model_path
-    data_name = f"discriminatory_data/lsac/lsac-{args.attr}_ids_EIDIG_INF_1.npy"
-    if args.attr == "g&r":
-        data_name = f"discriminatory_data/lsac/lsac-{args.attr}_ids_EIDIG_5_1.npy"
-    dis_data = np.load(data_name)
+    # data_name = f"discriminatory_data/mnist01/mnist01-{args.attr}_ids_EIDIG_INF_1.npy"
+    # if args.attr == "g&r":
+    #     data_name = f"discriminatory_data/mnist01/mnist01-{args.attr}_ids_EIDIG_5_1.npy"
+    # dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
-    protected_attribs = pos_map[args.attr]
-    similar_X = similar_set(dis_data, num_attribs, protected_attribs, constraint)
+    protected_attribs =[0]# pos_map[args.attr]
+    # similar_X = similar_set(dis_data, num_attribs, protected_attribs, constraint)
 
     income_train_scores = get_relevance(args.income_path, X_train,
-                                        save_path=os.path.join('scores/lsac', os.path.basename(args.income_path) + ".score"))
+                                        save_path=os.path.join('scores/mnist01', os.path.basename(args.income_path) + ".score"))
     income_critical = get_critical_neurons(income_train_scores, args.percent)
     finals = []
     for top_n in [4]:
         protected_critical_ls = []
         for a in attrs:
             path = path_dict[a][top_n - 1]
-            # path = "models/lsac_race_model_4_0.87.h5"
-            train_scores = get_relevance(path, X_train,  save_path=os.path.join('scores/lsac', os.path.basename(path) + ".score"))
+            # path = "models/mnist01_race_model_4_0.87.h5"
+            train_scores = get_relevance(path, X_train,  save_path=os.path.join('scores/mnist01', os.path.basename(path) + ".score"))
             protected_critical = get_critical_neurons(train_scores, args.percent)
             protected_critical_ls.append(protected_critical)
 
@@ -260,7 +268,7 @@ if __name__ == '__main__':
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
-            file_path = f'records/lsac_repair/{args.attr}_{args.percent}_{args.weight_threshold}/'
+            file_path = f'records/mnist01_repair/{args.attr}_{args.percent}_{args.weight_threshold}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'

@@ -103,82 +103,13 @@ def get_inconsistent_rate(model,images,labels):
     return {"acc":acc,"acc_fairness":acc_fairness,"inconsis_c":inconsistent_c,"total_c":total_c,"inconsistent_rate":rate} 
 
 
-def global_search(model,images,labels,eps_list= (np.arange(1,11)*0.1).tolist(),
-                  # is_return_advdata=False,
-                  foolbox_kwargs={"bounds":(0,1),"preprocessing":{}},
-                  
-                  ):
-    assert 0 not in eps_list, "in order to return the unfair's count, eps_list should not include 0, your input is {}".format(eps_list)
-    
-    
-    def _get_predict(model,images):
-        y_logist_n = model.predict(images)
-        if y_logist_n.shape[-1]==1 :
-            y_logist_n = y_logist_n.numpy() if type(y_logist_n)!=np.ndarray else y_logist_n
-            y_hat_n=( y_logist_n>0.5).astype(np.int32).flatten()
-        else :
-            y_logist_n =  y_logist_n.numpy() if type(y_logist_n)!=np.ndarray else y_logist_n
-            y_hat_n= np.argmax(y_logist_n,axis=1)
-        
-        return y_hat_n
-    
-    clean_predict = _get_predict(model=model, images=images)
-        
-    
-    ret_list= {}
-    fmodel: Model = TensorFlowModel(model, **foolbox_kwargs)
-    attack = LinfPGD()
-    if type(images)==np.ndarray :
-        images = tf.convert_to_tensor(images, dtype=tf.float32)
-    if type(labels)==np.ndarray :
-        labels = tf.convert_to_tensor(labels, dtype=tf.int64)
-
-    
-    raw_advs, clipped_advs, success_attack = attack(
-        fmodel, images, labels, epsilons=eps_list)
-
-    ##############
-    ''' try revert the predict label from sucess and  label
-    eg : label [1,0] sucess [0,1] --> predict_label [1,1] 
-    ''' 
-    ##############
-    ### label_eps_like=
-    success= success_attack.numpy().astype(np.bool)
-    
-    label_eps_like = labels.numpy() if type(labels)!=np.ndarray else labels 
-    if label_eps_like.ndim==1:
-        label_eps_like= np.expand_dims(label_eps_like,axis=0)
-        label_eps_like= np.repeat(label_eps_like,len(success), axis=0)
-    
-    label_eps_like= label_eps_like.astype(np.bool)
-    assert label_eps_like.ndim ==2 ,label_eps_like.shape
-    assert  set(np.unique(label_eps_like).tolist() ).issubset(set([0,1]) ) , "only label with 0,1 be supported"
-    
-    success_not = np.logical_not(success)
-    pred_labels_eps_like = np.logical_xor(label_eps_like,success_not)
-    pred_labels_eps_like = np.logical_not(pred_labels_eps_like)
-    # print (label_eps_like,"label_eps_like\n",success,"success\n",pred_labels_eps_like,"pred_labels_eps_like\n")
-    
-    # print ("\n",expect,"expect")
-    ### diff in clean_predict and eps_predict
-    clean_predict= clean_predict.astype(np.bool)
-    clean_predict= np.repeat( np.expand_dims(clean_predict,axis=0),len(success), axis=0)
-
-
-    ret = np.logical_xor(clean_predict,pred_labels_eps_like)
-    ret2= np.sum(ret,axis=0)
-    unfair_count =np.count_nonzero(ret2>0) #ret2>0 #np.logical_and(ret2!=0 ,ret2!=1).mean()
-    
-    return {"unfair_c":unfair_count,"total_c":len(labels)}
-
 def main() -> None:
     # instantiate a model (could also be a TensorFlow or JAX model)
     model =create_model() #tf.keras.applications.ResNet50(weights="imagenet")
     pre = {}#dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
     fmodel: Model = TensorFlowModel(model, bounds=(0, 1), preprocessing=pre)
     # fmodel = fmodel.transform_bounds((0, 1))
-    
-    ##
+
 
     ##test acc 
     (_,_),(x_test,y_test) = tf.keras.datasets.mnist.load_data()
@@ -234,32 +165,37 @@ def main() -> None:
     print ("epsilons",)
     print ("\t", epsilons)
     
+    #     0,
+    #     1,
+    #     2,
+    #     3,
+    #     4,
+    #     5,
+    #     6,
+    #     7,
+    #     8,
+    #     10,
+    #     30,
+    #     100,
+    # ]
     raw_advs, clipped_advs, success = attack(fmodel, images, labels, epsilons=epsilons)
-    print ("success",type(success))
-    print (success.numpy().shape,"success->",np.unique(success.numpy(),return_counts=True))
+    
     print ("test after being attacked ")
-    # np.savez("./success.npz",success=success.numpy(),labels=labels.numpy() )
-    
-    fairness_info  = global_search(model=model,images=images,labels=labels)
-    print ("fairness_info","....",fairness_info)
-    
-    # robust_accuracy = 1 - success.numpy().mean(axis=-1)
-    # print ("r_acc",robust_accuracy)
-    # for eps,one_adv in zip(epsilons,clipped_advs):
-    #     print ("===="*8)
-    #     naive_info = get_acc(model=model,images=one_adv,labels=y_test)
-    #     clean_acc = accuracy(fmodel, one_adv, labels)
-    #
-    #     # incon_info = get_inconsistent_rate(model=model,images=one_adv,labels=y_test)
-    #     # print ("consistent info ", incon_info)
-    #     # print(f"eps: {eps} accuracy:  {clean_acc * 100:.1f} %")
-    #     print("eps: {eps} accuracy:  {naive_acc:.4f} %".format(eps=eps,naive_acc=naive_info["acc"]*100))
-    #     # np.savez("./mnist_pgd_(eps={})_(acc={}).npz".format(eps,naive_info["acc"] ),
-    #     #          adv_data= one_adv.numpy(),
-    #     #          pred_labels= naive_info["pred"] if type(naive_info["pred"])==np.ndarray else naive_info["pred"].numpy(),
-    #     #          ground_truth = labels if type(labels) ==np.ndarray else labels.numpy(),
-    #     #          )
-    #     print ("\n")
+    for eps,one_adv in zip(epsilons,clipped_advs):
+        print ("===="*8)
+        naive_info = get_acc(model=model,images=one_adv,labels=y_test)
+        clean_acc = accuracy(fmodel, one_adv, labels)
+
+        incon_info = get_inconsistent_rate(model=model,images=one_adv,labels=y_test)
+        print ("consistent info ", incon_info)
+        # print(f"eps: {eps} accuracy:  {clean_acc * 100:.1f} %")
+        print("eps: {eps} accuracy:  {naive_acc:.4f} %".format(eps=eps,naive_acc=naive_info["acc"]*100))
+        np.savez("./mnist_pgd_(eps={})_(acc={}).npz".format(eps,naive_info["acc"] ),
+                 adv_data= one_adv.numpy(),
+                 pred_labels= naive_info["pred"] if type(naive_info["pred"])==np.ndarray else naive_info["pred"].numpy(),
+                 ground_truth = labels if type(labels) ==np.ndarray else labels.numpy(),
+                 )
+        print ("\n")
     # calculate and report the robust accuracy (the accuracy of the model when
     # it is attacked)
     # robust_accuracy = 1 - success.numpy().mean(axis=-1)
