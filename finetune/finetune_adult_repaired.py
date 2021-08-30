@@ -128,5 +128,5 @@ if __name__ == '__main__':
         if not os.path.exists(root_path):
             os.makedirs(root_path)
         # save model.
-        model_name = file_path + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+        model_name = root_path + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
         keras.models.save_model(model, model_name)
