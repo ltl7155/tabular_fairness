@@ -133,3 +133,5 @@ if __name__ == '__main__':
     saved_model.load_weights(model_name, by_name=True)
     model_name = (file_path + args.attr + '_adult_model_' + str(frozen_layer) + '.h5')
     tf.keras.models.save_model(saved_model, model_name)
+    
+    print("saved!")
