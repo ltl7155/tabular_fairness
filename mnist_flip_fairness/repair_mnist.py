@@ -210,7 +210,7 @@ if __name__ == '__main__':
     parser.add_argument('--income_path', default='models/original/mnist01_model_988cf647eee71fb30938c3c2cb0df718.h5', help='model_path')
     parser.add_argument('--target_model_path', default='models/mnist01_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--finetune_path', default='models/finetuned_models_protected_attributes2/mnist01/', help='finetune')
-    parser.add_argument('--attr', default='r', help='protected attributes')
+    parser.add_argument('--attr', default='background', help='protected attributes')
     parser.add_argument('--percent', type=float, default=0.3)
     parser.add_argument('--p0', type=float, default=1)
     parser.add_argument('--p1', type=float, default=1)
