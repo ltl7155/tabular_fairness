@@ -1,7 +1,21 @@
-# mnist experiment 
+# Mnist experiment 
 
 ##
-* step1 
+* step1: train a original model  
 ```
-python 
+python mnist_ori_09.py
 ```
+
+
+* step2: finetune with background' frozen layer  
+```
+python finetune_mnist.py
+```
+
+
+* step3: repair  
+```
+python repair_mnist.py
+```
+
+
