@@ -12,7 +12,7 @@ def load_mnist_from_numpy(x_train,
                           x_test,y_test,
                           flip_rate=0.2,\
                           random_state=32):
-    tf.random.set_seed(int(random_state))
+    #tf.random.set_seed(int(random_state))
     np.random.seed(int(random_state))
 
     '''
