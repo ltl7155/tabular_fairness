@@ -297,21 +297,21 @@ if __name__ == '__main__':
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
             with open(file_name, 'w') as f:
                 f.write("done")
-#     augmented_model = keras.models.load_model(target_model_path)
-#     aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
-#     aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
-#     dis_num = 0
-#     newdata_res = []
+    augmented_model = keras.models.load_model(target_model_path)
+    aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
+    aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
+    dis_num = 0
+    newdata_res = []
 
-#     l = len(similar_X)
-#     for i in range(l):
-#         newdata_re = augmented_model.predict(similar_X[i])
-#         newdata_re = (newdata_re > 0.5).astype(int).flatten()
-#         newdata_res.append(newdata_re)
-#     repaired_num = get_repaired_num(newdata_res)
+    l = len(similar_X)
+    for i in range(l):
+        newdata_re = augmented_model.predict(similar_X[i])
+        newdata_re = (newdata_re > 0.5).astype(int).flatten()
+        newdata_res.append(newdata_re)
+    repaired_num = get_repaired_num(newdata_res)
 
-#     print('Aug', np.sum(aug_val == y_val)/len(y_val))
-#     print('Aug', repaired_num/len(dis_data))
+    print('Aug', np.sum(aug_val == y_val)/len(y_val))
+    print('Aug', repaired_num/len(dis_data))
 
     
 #     for k in para_res.keys():
