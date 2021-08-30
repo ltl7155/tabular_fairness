@@ -218,9 +218,13 @@ if __name__ == '__main__':
     parser.add_argument('--saved', type=bool, default=False)
     parser.add_argument('--adjust_para', type=bool, default=False)
     parser.add_argument('--acc_lb', type=float, default=0.80)
-    parser.add_argument("-n","--net_layers",default="64,32,32,16,10",type=str,help="arch by comma")
+    parser.add_argument("-n","--net-archs",default="64,32,32,16,10",type=str,help="arch by comma")
     args = parser.parse_args()
     attrs = args.attr.split("&")
+
+    args_arch= args.net_archs
+    args_arch= [int(x) for x in args_arch.split(",")] 
+    setattr(args,"net_archs",args_arch)
 
     # data preparations
     path_dict = get_path_dict(args.finetune_path)
