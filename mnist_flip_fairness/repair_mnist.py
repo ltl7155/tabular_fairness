@@ -150,10 +150,10 @@ def get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_
     neurons = neurons[1: (top_n + 1)]
     return neurons
 
-def retrain(k, ps, neurons, para_res):
+def retrain(k, ps, neurons, para_res,net_archs):
 
     name = 'my_name_' + str(top_n) + '_' + str(k)
-    new_model = construct_model(neurons, top_n, name, ps[0], ps[1])
+    new_model = construct_model(net_archs=net_archs,neurons=neurons, top_layer=top_n, name=name,min= ps[0], max=ps[1])
     new_model.load_weights(args.income_path, by_name=True)
 
     tf_name = 'tf_op_layer_' + name
