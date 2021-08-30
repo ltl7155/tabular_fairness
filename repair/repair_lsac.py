@@ -297,6 +297,7 @@ if __name__ == '__main__':
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
             with open(file_name, 'w') as f:
                 f.write("done")
+                
     augmented_model = keras.models.load_model(target_model_path)
     aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
     aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
