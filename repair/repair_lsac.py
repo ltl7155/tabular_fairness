@@ -311,8 +311,9 @@ if __name__ == '__main__':
 #     print('Aug', np.sum(aug_val == y_val)/len(y_val))
 #     print('Aug', repaired_num/len(dis_data))
 
-
-    for k in para_res.keys():
-        if para_res[k][0] > 0.8 and para_res[k][1] > 0.98:
-            print(k, para_res[k])
+    e = time.time()
+    print("time", e-s)
+#     for k in para_res.keys():
+#         if para_res[k][0] > 0.8 and para_res[k][1] > 0.98:
+#             print(k, para_res[k])
 
