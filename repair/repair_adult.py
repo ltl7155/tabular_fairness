@@ -80,7 +80,7 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
             if args.ablation == 0:
                 w = tf.math.add(w, d.weights[0][0][m])
             elif args.ablation == 1:
-                w = tf.math.add(w, d.weights[0][0][m])
+                pass
             elif args.ablation == 2:
                 w = tf.math.add(w, d.weights[0][0][m])
             elif args.ablation == 3:
