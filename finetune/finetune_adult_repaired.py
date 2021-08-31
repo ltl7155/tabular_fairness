@@ -125,7 +125,7 @@ if __name__ == '__main__':
         history = model.fit(x=inner_output_train, y=y_train_labels, epochs=30,
                             validation_data=(inner_output_val, y_val_labels))
         
-        root_path = 'models/finetuned_models_protected_attributes_4/adult/'
+        root_path = 'models/finetuned_models_protected_attributes_5/adult/'
         if not os.path.exists(root_path):
             os.makedirs(root_path)
         # save model.
