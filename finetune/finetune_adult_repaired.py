@@ -69,7 +69,8 @@ if __name__ == '__main__':
                'r': 5,
                'g': 1,
                }
-    frozen_layers = [1, 2, 3, 4]
+#     frozen_layers = [1, 2, 3, 4]
+    frozen_layers = [4]
     
     models_map = {
         'a': "models/gated_models/adult_a_gated_4_0.3_0.2_p-0.3_p0.15.h5",
