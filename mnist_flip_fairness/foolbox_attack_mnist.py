@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
 import tensorflow as tf
-import eagerpy as ep
-from foolbox import TensorFlowModel, accuracy, samples, Model
-from foolbox.attacks import LinfPGD
+import os
 import numpy as np 
-
-gpus = tf.config.list_physical_devices('GPU')
-try:
-    for gpu in gpus:
-        tf.config.experimental.set_memory_growth(gpu, True)
-        tf.config.experimental.set_virtual_device_configuration(
-            gpu,
-            [
-            tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4096),
-            ]
-        )
-    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-except RuntimeError as e:
-    # Virtual devices must be set before GPUs have been initialized
-    print(e)
+import json 
 
 
+if str(tf.__version__).startswith("2."):
+    tf.random.set_seed(42)
+else:
+    tf.random.set_random_seed(42)
 
 class sigmoid_layer_2_softmax_layer(tf.keras.layers.Layer):
     def __init__(self,**kwargs):
@@ -38,18 +25,21 @@ class sigmoid_layer_2_softmax_layer(tf.keras.layers.Layer):
         output = tf.concat([inputs_neg,inputs], axis=1)
         return output
     
-def create_model():
+def create_model(weight_path,net_layers=[64,32,16,16,10]):
+
+    layer_lst = [
+        tf.keras.layers.Dense(xi, activation="relu", name=f"layer_{ii}")
+                for ii,xi in enumerate(net_layers) 
+                        ]
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=(28,28)),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(64, activation="relu",name="layer_0" ),
-        tf.keras.layers.Dense(32, activation="relu",name="layer_1"),
-        tf.keras.layers.Dense(32, activation="relu",name="layer_2"),
-        tf.keras.layers.Dense(16, activation="relu",name="layer_3"),
+        *layer_lst,
         tf.keras.layers.Dense(1, activation="sigmoid",name="output"),
         sigmoid_layer_2_softmax_layer(),
     ])
-    model.load_weights("./models/original/mnist01_model_w_c14fbf8c633c593f029630ad41bd2c7b.h5",by_name=True)
+    model.load_weights(weight_path,by_name=True)
+    #"./models/original/mnist01_model_onlyweight_988cf647eee71fb30938c3c2cb0df718.h5",by_name=True)
     return model
 
 def get_acc(model,images,labels):
@@ -69,6 +59,8 @@ def get_acc(model,images,labels):
     print ("acc",acc)
     return {"pred":y_hat,"acc":acc}
 def get_inconsistent_rate(model,images,labels):
+    assert np.max(images)<=1 ,("expect the images's max [0,1]")
+
     if type(labels)!=np.ndarray :
         labels = labels.numpy() 
 
@@ -100,29 +92,27 @@ def get_inconsistent_rate(model,images,labels):
     acc_fairness = np.sum(labels==y_hat_n)/len(y_hat_n)
     # print (labels[:10],y_hat[:10],y_hat_n[:10])
     
-    return {"acc":acc,"acc_fairness":acc_fairness,"inconsis_c":inconsistent_c,"total_c":total_c,"inconsistent_rate":rate} 
+    return {"acc":acc,"acc_fairness":acc_fairness,"inconsis_c":inconsistent_c,"total_c":total_c,"inconsistent_rate":rate,"y_hat":y_hat,"y_hat_n":y_hat_n} 
 
+def get_predict_naive(model,images):
+    y_logist_n = model.predict(images)
+    if y_logist_n.shape[-1]==1 :
+        y_logist_n = y_logist_n.numpy() if type(y_logist_n)!=np.ndarray else y_logist_n
+        y_hat_n=( y_logist_n>0.5).astype(np.int32).flatten()
+    else :
+        y_logist_n =  y_logist_n.numpy() if type(y_logist_n)!=np.ndarray else y_logist_n
+        y_hat_n= np.argmax(y_logist_n,axis=1)
+    
+    return y_hat_n
+    
 
-def global_search(model,images,labels,eps_list= (np.arange(1,11)*0.1).tolist(),
+def foolbox_attack_func(model,images,labels,eps_list= (np.arange(1,11)*0.1).tolist(),
                   # is_return_advdata=False,
                   foolbox_kwargs={"bounds":(0,1),"preprocessing":{}},
-                  
                   ):
     assert 0 not in eps_list, "in order to return the unfair's count, eps_list should not include 0, your input is {}".format(eps_list)
     
     
-    def _get_predict(model,images):
-        y_logist_n = model.predict(images)
-        if y_logist_n.shape[-1]==1 :
-            y_logist_n = y_logist_n.numpy() if type(y_logist_n)!=np.ndarray else y_logist_n
-            y_hat_n=( y_logist_n>0.5).astype(np.int32).flatten()
-        else :
-            y_logist_n =  y_logist_n.numpy() if type(y_logist_n)!=np.ndarray else y_logist_n
-            y_hat_n= np.argmax(y_logist_n,axis=1)
-        
-        return y_hat_n
-    
-    clean_predict = _get_predict(model=model, images=images)
         
     
     ret_list= {}
@@ -137,6 +127,14 @@ def global_search(model,images,labels,eps_list= (np.arange(1,11)*0.1).tolist(),
     raw_advs, clipped_advs, success_attack = attack(
         fmodel, images, labels, epsilons=eps_list)
 
+    return clipped_advs,success_attack
+def reverse_predict_label_from_foolboxsuccess(success_attack,labels):
+    '''
+    foolbox's success result always reflect the attack's sucess, but it cannot show the predict result 
+    this function will use the logic to extract the predicted labels
+    eg: original_label [0,1] attack_sucess [1,1]
+        so the predict_label would be [1,0]
+    '''
     ##############
     ''' try revert the predict label from sucess and  label
     eg : label [1,0] sucess [0,1] --> predict_label [1,1] 
@@ -161,135 +159,180 @@ def global_search(model,images,labels,eps_list= (np.arange(1,11)*0.1).tolist(),
     
     # print ("\n",expect,"expect")
     ### diff in clean_predict and eps_predict
+    return pred_labels_eps_like
+
+
+    #return unfair_metric(clean_predict=clean_predict, pred_labels_eps_like= pred_labels_eps_like,eps_list=eps_list)
+
+
+def unfair_metric(clean_predict,pred_labels_eps_like,eps_list=None):
+    '''
+    clean_predict : 
+      .shape= [1,x]
+    pred_labels_eps_like:
+      .shape= [len(eps),x]
+    if eps_list is not None :
+      assert len(eps_list) == len(pred_labels_eps_like)
+
+    eg : if  eps_list==[0....13] assert len(eps_list)==13
+          clean_predict.shape == [200,] pred_labels_eps_like.shape==[13,200]
+    '''
+    clean_predict_ori_len = len(clean_predict) 
+    if eps_list is not None :
+        assert len(pred_labels_eps_like)==len(eps_list), ("eps_list:",eps_list,"pred_labels_eps_like",pred_labels_eps_like.shape, "they should have a same length in first dim")
+
+    assert clean_predict.ndim ==1 ,("expect clean_predict.shape==[int,]", "your are", clean_predict.shape)
+
     clean_predict= clean_predict.astype(np.bool)
-    clean_predict= np.repeat( np.expand_dims(clean_predict,axis=0),len(success), axis=0)
+    clean_predict= np.repeat( np.expand_dims(clean_predict,axis=0),len(pred_labels_eps_like), axis=0)
 
 
     ret = np.logical_xor(clean_predict,pred_labels_eps_like)
     ret2= np.sum(ret,axis=0)
     unfair_count =np.count_nonzero(ret2>0) #ret2>0 #np.logical_and(ret2!=0 ,ret2!=1).mean()
     
-    return {"unfair_c":unfair_count,"total_c":len(labels)}
+    return {"unfair_c":unfair_count,"total_c":clean_predict_ori_len}
 
-def main() -> None:
+def main(args) -> None:
+
+
+
+    save_dir =args. save_dir
+    name_prefix=os.path.splitext( os.path.basename(args.weight_path))[0]
+
+    print ("will save as",name_prefix)
+
+
+
     # instantiate a model (could also be a TensorFlow or JAX model)
-    model =create_model() #tf.keras.applications.ResNet50(weights="imagenet")
+    model =create_model(weight_path=args.weight_path,net_layers  =args.net_layers )
+    # #tf.keras.applications.ResNet50(weights="imagenet")
     pre = {}#dict(flip_axis=-1, mean=[104.0, 116.0, 123.0])  # RGB to BGR
     fmodel: Model = TensorFlowModel(model, bounds=(0, 1), preprocessing=pre)
     # fmodel = fmodel.transform_bounds((0, 1))
     
-    ##
-
-    ##test acc 
+    ####
+    ##load data
+    ####
     (_,_),(x_test,y_test) = tf.keras.datasets.mnist.load_data()
     y_test_index09 =np.logical_or( y_test==0,y_test==9) 
     x_test = (x_test[y_test_index09].astype(np.float))/255.
     y_test = y_test[y_test_index09]
     y_test[y_test==9]=1
     
-    # #print ("x_test",np.min(x_test),np.max(x_test))
-    # y_test_hat = model(x_test)
-    # print ("y_test_hat",y_test_hat.shape,"--->")
-    # y_test_hat = y_test_hat.numpy()
-    # # y_test_hat = (y_test_hat>0.5).astype(np.int32).flatten()
-    # y_test_hat = np.argmax(y_test_hat,axis=-1)# (y_test_hat>0.5).astype(np.int32).flatten()
-    #
-    # acc=  np.sum(y_test_hat==y_test) /  len(y_test)
-    # print ("acc",acc)
     # get data and test the model
     # wrapping the tensors with ep.astensors is optional, but it allows
     # us to work with EagerPy tensors in the following
     images, labels =tf.convert_to_tensor(x_test, dtype=tf.float32), tf.convert_to_tensor(y_test, dtype=tf.int64)
-    # ep.astensors(x_test,y_test )  
-    # ddd = samples(fmodel, dataset="mnist", batchsize=16)
-    # d1,d2 = ddd [:2]
-    # print (type(d1),type(d2),"d1,d2")
-    # print (d1.dtype,d2.dtype,"d1,d2")
-    # print (type(images),type(labels),"images,labels")
-    # exit()
+    
+    gt_labels = labels
+
+
+    ####
+    ##check load weight
+    ####
+    #check the model's loading  is correct or not ?
     clean_acc = accuracy(fmodel, images, labels)
     naive_acc_info = get_acc(model=model, labels= labels ,images=images) 
     print ("test before being attacked ")
     print(f"\t clean accuracy:  {clean_acc * 100:.1f} %")
     print("\t clean(naive) accuracy:  {naive_acc:.4f} %".format( naive_acc=naive_acc_info["acc"]*100 ))
 
+
+    ####
+    ##get clean predict
+    ####
+    #clean_predict = get_predict_naive(model=model, images=images)
+
+
+
     # apply the attack
     attack = LinfPGD()
     # epsilons = [
-    #     0,
-    #     1,
-    #     2,
-    #     3,
-    #     4,
-    #     5,
-    #     6,
-    #     7,
-    #     8,
     #     10,
-    #     30,
     #     100,
     # ]
-    epsilons = np.array  (range(0,11,1)) * 0.1
-    epsilons = epsilons.tolist()
+    eps_list= (np.arange(1,11)*0.1).tolist()
     print ("epsilons",)
-    print ("\t", epsilons)
+    print ("\t", eps_list)
     
-    raw_advs, clipped_advs, success = attack(fmodel, images, labels, epsilons=epsilons)
-    print ("success",type(success))
-    print (success.numpy().shape,"success->",np.unique(success.numpy(),return_counts=True))
-    print ("test after being attacked ")
-    # np.savez("./success.npz",success=success.numpy(),labels=labels.numpy() )
-    
-    fairness_info  = global_search(model=model,images=images,labels=labels)
-    print ("fairness_info","....",fairness_info)
-    
-    # robust_accuracy = 1 - success.numpy().mean(axis=-1)
-    # print ("r_acc",robust_accuracy)
-    # for eps,one_adv in zip(epsilons,clipped_advs):
-    #     print ("===="*8)
-    #     naive_info = get_acc(model=model,images=one_adv,labels=y_test)
-    #     clean_acc = accuracy(fmodel, one_adv, labels)
-    #
-    #     # incon_info = get_inconsistent_rate(model=model,images=one_adv,labels=y_test)
-    #     # print ("consistent info ", incon_info)
-    #     # print(f"eps: {eps} accuracy:  {clean_acc * 100:.1f} %")
-    #     print("eps: {eps} accuracy:  {naive_acc:.4f} %".format(eps=eps,naive_acc=naive_info["acc"]*100))
-    #     # np.savez("./mnist_pgd_(eps={})_(acc={}).npz".format(eps,naive_info["acc"] ),
-    #     #          adv_data= one_adv.numpy(),
-    #     #          pred_labels= naive_info["pred"] if type(naive_info["pred"])==np.ndarray else naive_info["pred"].numpy(),
-    #     #          ground_truth = labels if type(labels) ==np.ndarray else labels.numpy(),
-    #     #          )
-    #     print ("\n")
-    # calculate and report the robust accuracy (the accuracy of the model when
-    # it is attacked)
-    # robust_accuracy = 1 - success.numpy().mean(axis=-1)
-    # print("robust accuracy for perturbations with")
-    # for eps, acc in zip(epsilons, robust_accuracy):
-    #     print(f"  Linf norm ≤ {eps:<6}: {acc.item() * 100:4.1f} %")
+    ####
+    ##attack with eps
+    ####
+    cliped_adv_images,_ = foolbox_attack_func(model=model,images=images,labels=labels, eps_list=eps_list)
+    assert type(cliped_adv_images)==list 
 
-    # we can also manually check this
-    # we will use the clipped advs instead of the raw advs, otherwise
-    # we would need to check if the perturbation sizes are actually
-    # within the specified epsilon bound
-    # print()
-    # print("we can also manually check this:")
-    # print()
-    # print("robust accuracy for perturbations with")
-    # for eps, advs_ in zip(epsilons, clipped_advs):
-    #     acc2 = accuracy(fmodel, advs_, labels)
-    #     print(f"  Linf norm ≤ {eps:<6}: {acc2 * 100:4.1f} %")
-    #     print("    perturbation sizes:")
-    #     # print ("advs_","images",type(advs_),type(images))
-    #
-    #     advs_,images = ep.astensors(advs_.numpy(),images.numpy() )
-    #
-    #     # print ("advs_","images",advs_.shape,images.shape)
-    #
-    #     perturbation_sizes = (advs_ - images).norms.linf(axis=(1, 2)).numpy()
-    #     print("    ", str(perturbation_sizes).replace("\n", "\n" + "    "))
-    #     if acc2 == 0:
-    #         break
+    #assert_func  =lambda x: assert(type(x)==np.ndarray) 
+
+    np_to_list = lambda x:x.tolist() if "numpy" in str(type(x)) else x
+    tf_to_np = lambda x: x.numpy() if tf.is_tensor(x) else x
+
+    save_data_list=[]
+    save_info_list=[]
+    img_list= []
+    for eps,adv_images  in zip(eps_list, cliped_adv_images):
+        inconsis_info = get_inconsistent_rate(model=model,images=adv_images,labels=gt_labels)
+
+        pred_y_hat =tf_to_np( inconsis_info["y_hat"] )
+        pred_y_hat_n =tf_to_np( inconsis_info["y_hat_n"] )
+        select_idx = pred_y_hat!=pred_y_hat_n
+        adv_images = tf_to_np( adv_images )
+        img_list.append( adv_images [select_idx])
+        assert type(adv_images) ==np.ndarray , type(adv_images)
+        assert type(pred_y_hat) ==np.ndarray , type(pred_y_hat)
+        assert type(pred_y_hat_n) ==np.ndarray , type(pred_y_hat_n)
+
+        data_info ={"adv_images":adv_images,"pred_y_hat":pred_y_hat,"pred_y_hat_n":pred_y_hat_n,"eps":eps}
+        save_data_list.append(data_info)
+
+
+        inconsis_info_debug = {k:np_to_list(v) for k,v in inconsis_info.items() if k in ["acc","acc_fairness","inconsis_c","total_c","inconsistent_rate"]}
+        save_info_list.append(inconsis_info_debug)
+
+    adv_inconsistent= np.concatenate(img_list,axis=0)
+    save_data_path = os.path.join(save_dir,"{name_prefix}_adv_inconsistent.npz".format(name_prefix=name_prefix))
+    print ("data save in ",save_data_path,adv_inconsistent.shape)
+    np.save(save_data_path ,adv_inconsistent)
+
+
+    save_data_path = os.path.join(save_dir,"{name_prefix}_adv.npz".format(name_prefix=name_prefix))
+    print ("data save in ",save_data_path)
+    np.savez(save_data_path ,data=save_data_list)
+
+    save_meta_path  = os.path.join(save_dir,"{name_prefix}_meta.json".format(name_prefix=name_prefix))
+    with open( save_meta_path ,"w") as f :
+        json.dump(fp=f,obj=save_info_list,indent=2)
+
+
+    #{"acc":acc,"acc_fairness":acc_fairness,"inconsis_c":inconsistent_c,"total_c":total_c,"inconsistent_rate":rate,"y_hat":y_hat,"y_hat_n":y_hat_n}
+
+    #predicted_labels_eps_like =reverse_predict_label_from_foolboxsuccess(success_attack=success_foolbox,labels=labels)
+    ####
+    ##run fairness metric
+    ####
+    #fairness_info = unfair_metric(clean_predict=clean_predict,pred_labels_eps_like=predicted_labels_eps_like,eps_list=eps_list)
+    #print ("fairness_info","....",fairness_info)
+    
 
 
 if __name__ == "__main__":
-    main()
+    assert str(tf.__version__).startswith("2."), ("tf.version>2.0", tf.__version__)
+    import eagerpy as ep
+    from foolbox import TensorFlowModel, accuracy, samples, Model
+    from foolbox.attacks import LinfPGD
+
+    import argparse
+    parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
+    parser.add_argument('--save-dir', default='discriminatory_data/mnist01/', help='unfair_testseed_path')
+    parser.add_argument('--weight-path', default='models/original/mnist01_model_onlyweight_988cf647eee71fb30938c3c2cb0df718.h5', help='vulnerable_model')
+    parser.add_argument("-n","--net_layers",default="64,32,32,16,10",type=str,help="arch by comma")
+
+
+    args= parser.parse_args()
+
+    args_arch= args.net_layers
+    args_arch= [int(x) for x in args_arch.split(",")] 
+    setattr(args,"net_layers",args_arch)
+
+
+    main(args)

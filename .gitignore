@@ -1,3 +1,6 @@
+models
+*.json
+test_foolbox.py
 *npz
 auto_commit.sh
 *.swp

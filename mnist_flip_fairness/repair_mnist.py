@@ -13,7 +13,18 @@ import tensorflow.keras.backend as KTF
 import argparse
 
 np.random.seed(42)
-#tf.random.set_seed(42)
+if str(tf.__version__).startswith("2."):
+    tf.random.set_seed(42)
+else:
+    tf.random.set_random_seed(42)
+
+
+config = tf.ConfigProto()  
+config.gpu_options.allow_growth=True 
+sess = tf.Session(config=config)
+
+KTF.set_session(sess)
+
 
 import pre_mnist_01 
 pre_mnist_01_dataset = pre_mnist_01.func_call( flip_rate=0.2,label_choices=[0,9] )
@@ -21,6 +32,7 @@ from explain import  get_relevance, get_critical_neurons
 from scalelayer import  ScaleLayer
 # from preprocessing import pre_census_income
 
+import json
 # config = tf.ConfigProto()  
 # config.gpu_options.allow_growth=True 
 # sess = tf.Session(config=config)
@@ -215,7 +227,7 @@ if __name__ == '__main__':
     parser.add_argument('--p0', type=float, default=1)
     parser.add_argument('--p1', type=float, default=1)
     parser.add_argument('--weight_threshold', type=float, default=0.2)
-    parser.add_argument('--saved', type=bool, default=False)
+    parser.add_argument('--saved', action='store_true')
     parser.add_argument('--adjust_para', type=bool, default=False)
     parser.add_argument('--acc_lb', type=float, default=0)
     parser.add_argument("-n","--net-archs",default="64,32,32,16,10",type=str,help="arch by comma")
@@ -234,11 +246,16 @@ if __name__ == '__main__':
     pre_mnist_01_dataset["x_val"], pre_mnist_01_dataset["y_train"], pre_mnist_01_dataset["y_val"], pre_mnist_01_dataset["constraint"]
     
     X_test, y_test = pre_mnist_01_dataset["x_test"], pre_mnist_01_dataset["y_test"]
+    assert np.max(y_test)==1 
+    assert np.max(y_train)==1 
+
     target_model_path = args.target_model_path
-    data_name = f"discriminatory_data/mnist01/mnist01-{args.attr}_ids_EIDIG_INF_1.npy"
-    # if args.attr == "g&r":
-    #     data_name = f"discriminatory_data/mnist01/mnist01-{args.attr}_ids_EIDIG_5_1.npy"
+    data_name = f"discriminatory_data/mnist01/mnist01_model_onlyweight_988cf647eee71fb30938c3c2cb0df718_adv_inconsistent.npz.npy"
     dis_data = np.load(data_name)
+    print (type(dis_data))
+    print (dis_data.shape,"dis_data")
+    dis_data = dis_data.reshape(len(dis_data),-1)
+    print (dis_data.shape,"dis_data")
     num_attribs = len(X_train[0])
     protected_attribs =[0]# pos_map[args.attr]
     similar_X = similar_set(dis_data)
@@ -279,7 +296,8 @@ if __name__ == '__main__':
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
             with open(file_name, 'w') as f:
-                f.write("done")
+                json.dump(obj=vars(args),fp=f,indent=2)
+                #f.write("done")
 #     augmented_model = keras.models.load_model(target_model_path)
 #     aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
 #     aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
