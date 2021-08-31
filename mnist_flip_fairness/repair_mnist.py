@@ -235,10 +235,10 @@ if __name__ == '__main__':
     
     X_test, y_test = pre_mnist_01_dataset["x_test"], pre_mnist_01_dataset["y_test"]
     target_model_path = args.target_model_path
-    # data_name = f"discriminatory_data/mnist01/mnist01-{args.attr}_ids_EIDIG_INF_1.npy"
+    data_name = f"discriminatory_data/mnist01/mnist01-{args.attr}_ids_EIDIG_INF_1.npy"
     # if args.attr == "g&r":
     #     data_name = f"discriminatory_data/mnist01/mnist01-{args.attr}_ids_EIDIG_5_1.npy"
-    # dis_data = np.load(data_name)
+    dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs =[0]# pos_map[args.attr]
     similar_X = similar_set(dis_data)
