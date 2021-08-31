@@ -283,7 +283,6 @@ if __name__ == '__main__':
             prefix = ""
             if args.ablation:
                 prefix = "_ablation"
-            
             file_path = f'records/adult_repair{prefix}/{args.attr}_{args.percent}_{args.weight_threshold}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
