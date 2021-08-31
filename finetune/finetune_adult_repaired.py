@@ -74,8 +74,8 @@ if __name__ == '__main__':
     
     models_map = {
         'a': "models/adult_model.h5",
-        'r': "models/gated_models/adult_g_gated_4_0.3_0.2_p-0.6_p0.1.h5",
-        'g': "models/gated_models/adult_r_gated_4_0.3_0.2_p-0.95_p0.8.h5",
+        'r': "models/adult_model.h5",
+        'g': "models/adult_model.h5",
             
 #         'a': "models/gated_models/adult_a_gated_4_0.3_0.2_p-0.3_p0.15.h5",
 #         'r': "models/gated_models/adult_g_gated_4_0.3_0.2_p-0.6_p0.1.h5",
