@@ -3,7 +3,7 @@ do
   for ((j=1;j<20;j++))
   do
 #    CUDA_VISIBLE_DEVICES=$[j%8] nohup python repair_adult.py --attr a\&g --p0 $[i] --p1 $[j] --acc_lb 0.825 2>&1 >adult_a\&g.log  &
-     CUDA_VISIBLE_DEVICES=$[j%8] nohup python repair/repair_adult.py --attr a  --p0 $[i] --p1 $[j] --ablation 2>&1 >adult_a\&r.log &
+     CUDA_VISIBLE_DEVICES=$[j%8] nohup python repair/repair_adult.py --attr a  --p0 $[i] --p1 $[j] --ablation0 2>&1 >adult_a\&r.log &
   done
   sleep 2m
   wait
