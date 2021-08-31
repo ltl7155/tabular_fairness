@@ -77,7 +77,7 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
         pos = re[1]
         d = ds[i]
         for m in neg:
-            if args.ablation !=1 and args.ablation != 3:
+            if args.ablation == 0:
                 w = tf.math.add(w, d.weights[0][0][m])
         for n in pos:
             w = tf.math.subtract(w, d.weights[0][0][n])
