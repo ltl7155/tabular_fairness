@@ -233,7 +233,7 @@ if __name__ == '__main__':
     parser.add_argument('--saved', type=bool, default=False)
     parser.add_argument('--adjust_para', type=bool, default=False)
     parser.add_argument('--acc_lb', type=float, default=0.80)
-    parser.add_argument('--ablation', type=bool, default=0.80)
+    parser.add_argument('--ablation', type=bool, default=False)
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
