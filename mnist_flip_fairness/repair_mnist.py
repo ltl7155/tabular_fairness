@@ -92,7 +92,7 @@ def my_filter(layer_critical, total_num):
 
 def similar_set(X):
     assert np.max(X)<=1 , ("max",np.max(X),"min", np.min(X))
-    return 1-X 
+    return [X, 1-X] 
     # find all similar inputs corresponding to different combinations of protected attributes with non-protected attributes unchanged
     # similar_X = []
     # protected_domain = []
