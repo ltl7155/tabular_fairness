@@ -76,6 +76,10 @@ if __name__ == '__main__':
         'a': "models/gated_models/adult_a_gated_4_0.3_0.2_p-0.3_p0.15.h5",
         'r': "models/gated_models/adult_g_gated_4_0.3_0.2_p-0.6_p0.1.h5",
         'g': "models/gated_models/adult_r_gated_4_0.3_0.2_p-0.95_p0.8.h5",
+            
+#         'a': "models/gated_models/adult_a_gated_4_0.3_0.2_p-0.3_p0.15.h5",
+#         'r': "models/gated_models/adult_g_gated_4_0.3_0.2_p-0.6_p0.1.h5",
+#         'g': "models/gated_models/adult_r_gated_4_0.3_0.2_p-0.95_p0.8.h5",
 #         'a&r': "models/adult_a&r_gated_4_0.3_0.2_p-0.4_p0.5.h5",
 #         'a&g': "models/adult_a&g_gated_4_0.3_0.2_p-0.3_p0.2.h5",
 #         'r&g': "models/adult_r&g_gated_4_0.3_0.2_p-0.9_p0.8.h5",
