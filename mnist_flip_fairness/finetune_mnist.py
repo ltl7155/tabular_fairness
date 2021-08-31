@@ -10,6 +10,11 @@ import numpy as np
 from tensorflow.keras.utils import to_categorical
 
 #tf.random.set_seed(42)
+if str(tf.__version__).startswith("2."):
+    tf.random.set_seed(42)
+else:
+    tf.random.set_random_seed(42)
+
 np.random.seed(42)
 
 import pre_mnist_01
@@ -69,9 +74,9 @@ if __name__ == '__main__':
     
     frozen_layers = [1, 2, 3, 4, 5]
 
-    for frozen_layer,epochs in zip(frozen_layers, [10,10,20,30,30]):
+    for frozen_layer,epochs in zip(frozen_layers, [10,10,20,30,50]):
         model = construct_model(frozen_layer, args.attr,args_arch=args.net_layers)
-        model.load_weights(args.path, by_name=True)
+        model.load_weights(args.path, by_name=True)# if ".tf" in args.path else False )
 
         attr = args.attr
         losses = {}

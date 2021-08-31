@@ -10,6 +10,10 @@ md5name= lambda x:hashlib.md5(x if type(x)==bytes else str(x).encode() ).hexdige
 
 
 #tf.random.set_seed(42)
+if str(tf.__version__).startswith("2."):
+    tf.random.set_seed(42)
+else:
+    tf.random.set_random_seed(42)
 np.random.seed(42)
 
 import pre_mnist_01
@@ -194,10 +198,11 @@ if __name__=="__main__":
     args_info_dict.update({"ori_reporter":ret_info_ori["reporter"], "flip_reporter":ret_info_flip["reporter"], })
     
     model_name = 'models/original/mnist01_model_{}.h5'.format(serise_no)
-    keras.models.save_model(model, model_name)
+    keras.models.save_model(model, model_name)#,save_format='tf')
     # model.save_weights( model_name)
+    #w_name = 'models/original/mnist01_model_onlyweight_{}.h5.tf'.format(serise_no)
     w_name = 'models/original/mnist01_model_onlyweight_{}.h5'.format(serise_no)
-    model.save_weights( w_name)
+    model.save_weights( w_name)#,save_format="tf")
 
     modelinfo_name = 'models/original/mnist01_model_{}_meta.json'.format(serise_no)
     import json
