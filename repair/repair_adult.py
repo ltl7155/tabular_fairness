@@ -77,9 +77,23 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
         pos = re[1]
         d = ds[i]
         for m in neg:
-            w = tf.math.add(w, d.weights[0][0][m])
+            if args.ablation == 0:
+                w = tf.math.add(w, d.weights[0][0][m])
+            elif args.ablation == 1:
+                pass
+            elif args.ablation == 2:
+                w = tf.math.add(w, d.weights[0][0][m])
+            elif args.ablation == 3:
+                w = tf.math.subtract(w, d.weights[0][0][m])
         for n in pos:
-            w = tf.math.subtract(w, d.weights[0][0][n])
+            if args.ablation == 0:
+                w = tf.math.subtract(w, d.weights[0][0][n])
+            elif args.ablation == 1:
+                w = tf.math.subtract(w, d.weights[0][0][n])
+            elif args.ablation == 2:
+                pass
+            elif args.ablation == 3:
+                w = tf.math.add(w, d.weights[0][0][n])
     new_w = tf.identity(tf.reshape(w, [1, 1]), name=name)
 
     model = keras.Model(input, [x, new_w])
@@ -233,6 +247,7 @@ if __name__ == '__main__':
     parser.add_argument('--saved', type=bool, default=False)
     parser.add_argument('--adjust_para', type=bool, default=False)
     parser.add_argument('--acc_lb', type=float, default=0.80)
+    parser.add_argument('--ablation', type=int, default=0)
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
@@ -279,7 +294,10 @@ if __name__ == '__main__':
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()
-            file_path = f'records/adult_repair/{args.attr}_{args.percent}_{args.weight_threshold}/'
+            prefix = ""
+            if args.ablation != 0:
+                prefix = "_ablation" + str(args.ablation)
+            file_path = f'records/adult_repair{prefix}/{args.attr}_{args.percent}_{args.weight_threshold}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
