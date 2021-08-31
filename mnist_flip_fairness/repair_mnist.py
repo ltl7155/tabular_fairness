@@ -250,7 +250,7 @@ if __name__ == '__main__':
     for top_n in [4]:
         protected_critical_ls = []
         for a in attrs:
-            print (list(path_dict),"path_dict")
+            print (list(path_dict), "path_dict")
             path = path_dict[a][top_n - 1]
             # path = "models/mnist01_race_model_4_0.87.h5"
             train_scores = get_relevance(path, X_train,  save_path=os.path.join('scores/mnist01', os.path.basename(path) + ".score"))
