@@ -90,7 +90,7 @@ def my_filter(layer_critical, total_num):
     i_critical = i_unique[i_sort]
     return i_critical
 
-def similar_set(X, num_attribs, protected_attribs, constraint):
+def similar_set(X):
     assert np.max(X)<=1 , ("max",np.max(X),"min", np.min(X))
     return 1-X 
     # find all similar inputs corresponding to different combinations of protected attributes with non-protected attributes unchanged
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     # dis_data = np.load(data_name)
     num_attribs = len(X_train[0])
     protected_attribs =[0]# pos_map[args.attr]
-    similar_X = similar_set(dis_data, num_attribs, protected_attribs, constraint)
+    similar_X = similar_set(dis_data)
 
     income_train_scores = get_relevance(args.income_path, X_train,
                                         save_path=os.path.join('scores/mnist01', os.path.basename(args.income_path) + ".score"))
