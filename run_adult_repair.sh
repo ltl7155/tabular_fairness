@@ -28,4 +28,6 @@ do
         sleep 5m
         wait
     done
+    sleep 5m
+    wait
 done
