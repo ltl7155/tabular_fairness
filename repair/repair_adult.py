@@ -298,7 +298,7 @@ if __name__ == '__main__':
         if args.adjust_para:
             paras = [(a/10, b/10) for a in np.arange(-11, 0, 1) for b in np.arange(1, 10, 1)]
         else:
-            paras = paras_map[args.attr]
+            paras = [(-args.p0/20, args.p1/20)]
         print("*"*100, paras)
         para_res = dict()
         for k, ps in enumerate(paras):
