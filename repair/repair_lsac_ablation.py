@@ -83,20 +83,25 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
         neg = re[0]
         pos = re[1]
         d = ds[i]
-    
-#         normal = [j for j in range(d.weights[0].shape[1]) if j not in neg and j not in pos]
-        normal = [j for j in range(d.weights[0].shape[1])]
         for m in neg:
-#             w = tf.math.add(w, tf.math.abs(d.weights[0][0][m]))
-            w = tf.math.add(w, d.weights[0][0][m])
-#             w = tf.math.subtract(w, d.weights[0][0][m])
-#             w = tf.math.add(w, tf.math.sum(tf.math.abs(d.weights[0][0])))
+            if args.ablation == 0:
+                w = tf.math.add(w, d.weights[0][0][m])
+            elif args.ablation == 1:
+                pass
+            elif args.ablation == 2:
+                w = tf.math.add(w, d.weights[0][0][m])
+            elif args.ablation == 3:
+                w = tf.math.subtract(w, d.weights[0][0][m])
+
         for n in pos:
-            w = tf.math.subtract(w, d.weights[0][0][n])
-#             w = tf.math.add(w, tf.math.abs(d.weights[0][0][n]))
-#             w = tf.math.add(w, d.weights[0][0][n])
-#     for m in range(ds[-1].weights[0].shape[1]):
-#         w = tf.math.add(w, tf.math.abs(ds[-1].weights[0][0][m]))
+            if args.ablation == 0:
+                w = tf.math.subtract(w, d.weights[0][0][n])
+            elif args.ablation == 1:
+                w = tf.math.subtract(w, d.weights[0][0][n])
+            elif args.ablation == 2:
+                pass
+            elif args.ablation == 3:
+                w = tf.math.add(w, d.weights[0][0][n])
     new_w = tf.identity(tf.reshape(w, [1, 1]), name=name)
 
     model = keras.Model(input, [x, new_w])
