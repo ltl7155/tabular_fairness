@@ -269,7 +269,7 @@ if __name__ == '__main__':
             for p in percents:
                 for w in weight_thresholds:
                     args.ablation = a
-                    args.attr = at
+                    args.attr = attr_p
                     args.percent = attr_p
                     args.weight_threshold = w
                     # data preparations
