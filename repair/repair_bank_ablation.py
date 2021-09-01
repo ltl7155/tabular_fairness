@@ -283,7 +283,8 @@ if __name__ == '__main__':
             retrain(k, ps, neurons, para_res)
         for k in para_res.keys():
             print(k, para_res[k])
-            file_path = f'records/bank_repair/{args.attr}/'
+            prefix = "_ablation" + str(args.ablation)
+            file_path = f'records/adult_repair{prefix}/{args.attr}_{args.percent}_{args.weight_threshold}/'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
