@@ -266,6 +266,8 @@ if __name__ == '__main__':
     weight_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5]
     for p in percents:
         for w in weight_thresholds:
+            args.percent = p
+            args.
             # data preparations
             path_dict = get_path_dict()
             X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
