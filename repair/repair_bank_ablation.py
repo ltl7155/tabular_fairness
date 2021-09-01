@@ -90,6 +90,7 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
                 pass
             elif args.ablation == 3:
                 w = tf.math.add(w, d.weights[0][0][n])
+                
     new_w = tf.identity(tf.reshape(w, [1, 1]), name=name)
 
     model = keras.Model(input, [x, new_w])
