@@ -177,7 +177,7 @@ def retrain(k, ps, neurons, para_res):
 
     name = 'my_name_' + str(top_n) + '_' + str(k)
     new_model = construct_model(neurons, top_n, name, ps[0], ps[1])
-    new_model.load_weights(args.income_path, by_name=True)
+#     new_model.load_weights(args.income_path, by_name=True)
 
     tf_name = 'tf_op_layer_' + name
     losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun}
