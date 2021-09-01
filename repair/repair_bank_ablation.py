@@ -237,7 +237,7 @@ def retrain(k, ps, neurons, para_res):
 
 pos_map = { 'a': [0],
             }
-paras_map = { 'a': [0],
+paras_map = { 'a': [-0.15, 0.3],
             }
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
