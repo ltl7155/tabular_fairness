@@ -269,6 +269,8 @@ if __name__ == '__main__':
         for atrr in pos_map.keys():
             for p in percents:
                 for w in weight_thresholds:
+                    args.ablation = a
+                    args.attr = 
                     args.percent = p
                     args.weight_threshold = w
                     # data preparations
