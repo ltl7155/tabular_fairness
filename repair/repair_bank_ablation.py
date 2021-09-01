@@ -302,7 +302,7 @@ if __name__ == '__main__':
                         if args.adjust_para:
                             paras = [(a / 10, b / 10) for a in np.arange(-20, 20, 1) for b in np.arange(a, 20, 1)]
                         else:
-                            paras = [(-args.p0/20, args.p1/20)]
+                            paras = [paras_map[args.attr]]
                         para_res = dict()
                         for k, ps in enumerate(paras):
                             retrain(k, ps, neurons, para_res)
