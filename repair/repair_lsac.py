@@ -181,7 +181,7 @@ def retrain(k, ps, neurons, para_res):
 
     tf_name = 'tf_op_layer_' + name
     losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun}
-    losses_weights = {'layer6': 1.0, tf_name: 0.0}
+    losses_weights = {'layer6': 0.1, tf_name: 0.0}
 
     new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'layer6': "accuracy"})
     history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=10,
