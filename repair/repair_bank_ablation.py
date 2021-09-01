@@ -237,6 +237,8 @@ def retrain(k, ps, neurons, para_res):
 
 pos_map = { 'a': [0],
             }
+paras_map = { 'a': [0],
+            }
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--path', default='models/bank_model.h5', help='model_path')
