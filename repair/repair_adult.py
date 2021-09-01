@@ -219,6 +219,8 @@ def retrain(k, ps, neurons, para_res):
     # data_re, _ = new_model.predict(data)
     # data_re = (data_re > 0.5).astype(int).flatten()
     finals.append((test_acc, repair_acc))
+    
+    print(ps)
     para_res[ps] = (test_acc, repair_acc)
 
     if args.saved:
