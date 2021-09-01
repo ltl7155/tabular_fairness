@@ -10,6 +10,8 @@
 #   echo -n "$[i] is finished!";
 # done
 array = ('a', 'r', 'g', 'a\&r', 'a\&g', 'g\&r')
+per = (0.1,0.2,0.3,0.4,0.5)
+wei = (0.1,0.2,0.3,0.4,0.5)
 for attr in ${array[@]}
 do
     for ((j=1;j<4;j++))
