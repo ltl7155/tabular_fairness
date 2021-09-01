@@ -61,7 +61,7 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
     ds = [d1, d2, d3, d4, d5]
     for layer in layer_lst[0: top_layer]:
         layer.trainable = False
-    for layer in layer_lst[0: top_layer]:
+    for layer in ds[0: top_layer]:
         layer.trainable = False
 
     x = input
