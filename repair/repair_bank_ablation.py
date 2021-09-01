@@ -252,7 +252,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
-    ablations = [0, 2, 3, 3]
+    ablations = [0, 1, 2, 3]
     percents = [0.1, 0.2, 0.3, 0.4, 0.5]
     weight_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5]
     for a in ablations:
