@@ -24,6 +24,7 @@ do
             done
             sleep 1m
             wait
+            echo -n "$[j] is finished!";
         done
         sleep 5m
         wait
