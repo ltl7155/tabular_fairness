@@ -234,9 +234,9 @@ pos_map = {
             'g&r': [10, 9]
             }
 paras_map = { 
-            'r': [10],
-            'g': [9],
-            'g&r': [10, 9]
+            'r': [-0.9, 0.05],
+            'g': [-0.85, 0.2],
+            'g&r': [-0.55, 0.45]
             }
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
