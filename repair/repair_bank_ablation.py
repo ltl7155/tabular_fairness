@@ -252,79 +252,86 @@ if __name__ == '__main__':
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
-    # model = keras.models.load_model(args.path)
-    # model.summary()
-    # exit()
-    # data preparations
-    path_dict = get_path_dict()
+    ablations = [0, 2, 3, 3]
+    percents = [0.1, 0.2, 0.3, 0.4, 0.5]
+    weight_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5]
+    for a in ablations:
+        for attr_p in pos_map.keys():
+            for p in percents:
+                for w in weight_thresholds:
+                    args.ablation = a
+                    args.attr = attr_p
+                    args.percent = p
+                    args.weight_threshold = w
+                    path_dict = get_path_dict()
 
-    X_train, X_val, y_train, y_val, constraint \
-        = pre_bank_marketing.X_train, pre_bank_marketing.X_val, pre_bank_marketing.y_train, pre_bank_marketing.y_val, pre_bank_marketing.constraint
-    X_test, y_test = pre_bank_marketing.X_test, pre_bank_marketing.y_test
+                    X_train, X_val, y_train, y_val, constraint \
+                        = pre_bank_marketing.X_train, pre_bank_marketing.X_val, pre_bank_marketing.y_train, pre_bank_marketing.y_val, pre_bank_marketing.constraint
+                    X_test, y_test = pre_bank_marketing.X_test, pre_bank_marketing.y_test
 
-    target_model_path = args.target_model_path
-    data_name = f"discriminatory_data/bank/B-{args.attr}_ids_EIDIG_INF.npy"
-    dis_data = np.load(data_name)
-    num_attribs = len(X_train[0])
-    protected_attribs = pos_map[args.attr]
-    similar_X = similar_set(dis_data, num_attribs, protected_attribs, constraint)
+                    target_model_path = args.target_model_path
+                    data_name = f"discriminatory_data/bank/B-{args.attr}_ids_EIDIG_INF.npy"
+                    dis_data = np.load(data_name)
+                    num_attribs = len(X_train[0])
+                    protected_attribs = pos_map[args.attr]
+                    similar_X = similar_set(dis_data, num_attribs, protected_attribs, constraint)
 
-    income_train_scores = get_relevance(args.path, X_train,
-                                        save_path=os.path.join('scores/bank', os.path.basename(args.path) + ".score"))
-    income_critical = get_critical_neurons(income_train_scores, args.percent)
+                    income_train_scores = get_relevance(args.path, X_train,
+                                                        save_path=os.path.join('scores/bank', os.path.basename(args.path) + ".score"))
+                    income_critical = get_critical_neurons(income_train_scores, args.percent)
 
-    finals = []
-    for top_n in [4]:
-        protected_critical_ls = []
-        for a in attrs:
-            path = path_dict[a][top_n - 1]
-            # path = "models/adult_race_model_4_0.87.h5"
-            train_scores = get_relevance(path, X_train, save_path=os.path.join('scores/bank', os.path.basename(path) + ".score"))
-            protected_critical = get_critical_neurons(train_scores, args.percent)
-            protected_critical_ls.append(protected_critical)
+                    finals = []
+                    for top_n in [4]:
+                        protected_critical_ls = []
+                        for a in attrs:
+                            path = path_dict[a][top_n - 1]
+                            # path = "models/adult_race_model_4_0.87.h5"
+                            train_scores = get_relevance(path, X_train, save_path=os.path.join('scores/bank', os.path.basename(path) + ".score"))
+                            protected_critical = get_critical_neurons(train_scores, args.percent)
+                            protected_critical_ls.append(protected_critical)
 
-        layer_num = len(income_critical)
-        total_num = len(X_train)
-        neurons = get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_critical_ls)
-        # paras = [(-1, 1), (-0.8, 1), (-0.5, 1), (-0.2, 1), (0, 1), (-1, 1.5), (-0.8, 1.5), (-0.4, 1.5), (0, 1.5), (-1, 2), (-0.8, 2), (-0.4, 2), (0,2)]
-        # paras = [(0.2, 1), (0.5, 1), (0.7,1), (0.9,1)]
-        # paras = [(-1, 1)]
-        # paras = [(args.p0, args.p1)]
-        if args.adjust_para:
-            paras = [(a / 10, b / 10) for a in np.arange(-20, 20, 1) for b in np.arange(a, 20, 1)]
-        else:
-            paras = [(-args.p0/20, args.p1/20)]
-        para_res = dict()
-        for k, ps in enumerate(paras):
-            retrain(k, ps, neurons, para_res)
-        for k in para_res.keys():
-            print(k, para_res[k])
-            prefix = "_ablation" + str(args.ablation)
-            file_path = f'records/bank_repair{prefix}/{args.attr}_{args.percent}_{args.weight_threshold}/'
-            if not os.path.exists(file_path):
-                os.makedirs(file_path)
-            file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
-            with open(file_name, 'w') as f:
-                f.write("done")
+                        layer_num = len(income_critical)
+                        total_num = len(X_train)
+                        neurons = get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_critical_ls)
+                        # paras = [(-1, 1), (-0.8, 1), (-0.5, 1), (-0.2, 1), (0, 1), (-1, 1.5), (-0.8, 1.5), (-0.4, 1.5), (0, 1.5), (-1, 2), (-0.8, 2), (-0.4, 2), (0,2)]
+                        # paras = [(0.2, 1), (0.5, 1), (0.7,1), (0.9,1)]
+                        # paras = [(-1, 1)]
+                        # paras = [(args.p0, args.p1)]
+                        if args.adjust_para:
+                            paras = [(a / 10, b / 10) for a in np.arange(-20, 20, 1) for b in np.arange(a, 20, 1)]
+                        else:
+                            paras = [(-args.p0/20, args.p1/20)]
+                        para_res = dict()
+                        for k, ps in enumerate(paras):
+                            retrain(k, ps, neurons, para_res)
+                        for k in para_res.keys():
+                            print(k, para_res[k])
+                            prefix = "_ablation" + str(args.ablation)
+                            file_path = f'records/bank_repair{prefix}/{args.attr}_{args.percent}_{args.weight_threshold}/'
+                            if not os.path.exists(file_path):
+                                os.makedirs(file_path)
+                            file_name = file_path + f'{round(para_res[k][0], 4)}_{round(para_res[k][1], 4)}_{k}.txt'
+                            with open(file_name, 'w') as f:
+                                f.write("done")
             # weights = new_model.get_weights()
     print("Retrain is over!")
-    augmented_model = keras.models.load_model(target_model_path)
-    aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
-    aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
-    dis_num = 0
-    newdata_res = []
+#     augmented_model = keras.models.load_model(target_model_path)
+#     aug_val = (augmented_model.predict(X_val) > 0.5).astype(int).flatten()
+#     aug_data = (augmented_model.predict(dis_data) > 0.5).astype(int).flatten()
+#     dis_num = 0
+#     newdata_res = []
 
-    l = len(similar_X)
-    for i in range(l):
-        newdata_re = augmented_model.predict(similar_X[i])
-        newdata_re = (newdata_re > 0.5).astype(int).flatten()
-        newdata_res.append(newdata_re)
-    repaired_num = get_repaired_num(newdata_res)
+#     l = len(similar_X)
+#     for i in range(l):
+#         newdata_re = augmented_model.predict(similar_X[i])
+#         newdata_re = (newdata_re > 0.5).astype(int).flatten()
+#         newdata_res.append(newdata_re)
+#     repaired_num = get_repaired_num(newdata_res)
 
 
-    print('Aug', np.sum(aug_val == y_val)/len(y_val))
-    print('Aug', repaired_num/len(dis_data))
+#     print('Aug', np.sum(aug_val == y_val)/len(y_val))
+#     print('Aug', repaired_num/len(dis_data))
 
-    for k in para_res.keys():
-        if para_res[k][0] > 0.88 and para_res[k][1] > 0.95:
-            print(k, para_res[k])
+#     for k in para_res.keys():
+#         if para_res[k][0] > 0.88 and para_res[k][1] > 0.95:
+#             print(k, para_res[k])
