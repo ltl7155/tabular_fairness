@@ -17,5 +17,12 @@ wei=(0.1,0.2,0.3,0.4,0.5)
 
 for a in "r" "g" "r\&g"
 do
-    echo a $a
+    for ((j=1;j<4;j++))
+    do
+        echo $a
+        CUDA_VISIBLE_DEVICES=$[j%7 + 1] nohup python repair/repair_lsac_ablation.py --attr $attr --ablation $j --percent $p --weight_threshold $w 2>&1 >adult_a\&r.log &
+    done
+    sleep 1m
+    wait
+    echo -n "$attr is finished!";
 done
