@@ -223,7 +223,7 @@ def retrain(k, ps, neurons, para_res):
         repair_acc = 0
 
     finals.append((test_acc, repair_acc))
-    para_res[ps] = (test_acc, repair_acc)
+    para_res[str(ps)] = (test_acc, repair_acc)
 
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
