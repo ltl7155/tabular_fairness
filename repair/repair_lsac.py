@@ -57,7 +57,7 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
     d5 = ScaleLayer(5, min, max)
     layer6 = keras.layers.Dense(1, activation="sigmoid", name="layer6")
     
-    act = keras.layers.Activation(activations.relu) 
+#     act = keras.layers.Activation(activations.relu) 
     layer_lst = [layer1, layer2, layer3, layer4, layer5]
     ds = [d1, d2, d3, d4, d5]
     for layer in layer_lst[0: top_layer]:
@@ -67,8 +67,7 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
     for i, l in enumerate(layer_lst):
         x = l(x)
         if i < top_layer:
-#             x = ds[i](x)
-            x = act(x)
+            x = ds[i](x)
     x = layer6(x)
 
     if not need_weights:
