@@ -261,7 +261,9 @@ if __name__ == '__main__':
     parser.add_argument('--ablation', type=int, default=0)
     args = parser.parse_args()
     attrs = args.attr.split("&")
-
+    
+    percents = [0.1, 0.2, 0.3, 0.4, 0.5]
+    weight_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5]
     # data preparations
     path_dict = get_path_dict()
     X_train, X_val, y_train, y_val, constraint = pre_census_income.X_train, \
