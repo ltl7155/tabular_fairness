@@ -15,6 +15,7 @@ wei = (0.1,0.2,0.3,0.4,0.5)
 for p in ${per[@]}
 do
 for w in ${wei[@]}
+do
 for attr in ${array[@]}
 do
     for ((j=1;j<4;j++))
@@ -22,4 +23,6 @@ do
         CUDA_VISIBLE_DEVICES=$[j%7 + 1] nohup python repair/repair_adult_ablation.py --attr $attr --ablation j  2>&1 >adult_a\&r.log &
     done
 sleep 2m
+done
+done
 done
