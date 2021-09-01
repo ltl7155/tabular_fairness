@@ -25,5 +25,9 @@ do
             sleep 1m
             wait
         done
+        sleep 1m
+        wait
     done
+    sleep 1m
+    wait
 done
