@@ -1,0 +1,7 @@
+ find . -name '*.txt'|xargs -I {} rm -fr   "{}"
+ find . -name '*.json'|xargs -I {} rm -fr   "{}"
+ find . -name '*.h5'|xargs -I {} rm -fr   "{}"
+ find . -name '*.npy'|xargs -I {} rm -fr   "{}"
+ find . -name '*.npz'|xargs -I {} rm -fr   "{}"
+ find . -name '*.score'|xargs -I {} rm -fr   "{}"
+ find . -name '*.jpg'|xargs -I {} rm -fr   "{}"
