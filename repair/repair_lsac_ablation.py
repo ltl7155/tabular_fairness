@@ -233,6 +233,11 @@ pos_map = {
             'g': [9],
             'g&r': [10, 9]
             }
+paras_map = { 
+            'r': [10],
+            'g': [9],
+            'g&r': [10, 9]
+            }
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--income_path', default='models/lsac_model.h5', help='model_path')
