@@ -66,6 +66,7 @@ def construct_model(neurons, top_layer, name, min, max, need_weights=True):
     for i, l in enumerate(layer_lst):
         x = l(x)
         if i < top_layer:
+#             x = ds[i](x)
             x = ds[i](x)
     x = layer6(x)
 
