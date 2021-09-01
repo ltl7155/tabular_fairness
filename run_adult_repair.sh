@@ -9,9 +9,12 @@
 #   wait
 #   echo -n "$[i] is finished!";
 # done
-
-for ((j=1;j<4;j++))
+array = ('a', 'r', 'g', 'a\&r', 'a\&g', 'g\&r')
+for i in ${array[@]}
 do
-    CUDA_VISIBLE_DEVICES=$[j%7 + 1] nohup python repair/repair_adult_ablation.py --attr a --ablation j  2>&1 >adult_a\&r.log &
-done
+    for ((j=1;j<4;j++))
+    do
+        CUDA_VISIBLE_DEVICES=$[j%7 + 1] nohup python repair/repair_adult_ablation.py --attr a --ablation j  2>&1 >adult_a\&r.log &
+    done
 sleep 2m
+done
