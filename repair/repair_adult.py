@@ -243,6 +243,13 @@ pos_map = { 'a': [0],
             'a&g': [0, 7],
             'r&g': [6, 7]
             }
+paras_map = {'a': [0],
+            'r': [6],
+            'g': [7],
+            'a&r': [0, 6],
+            'a&g': [0, 7],
+            'r&g': [6, 7]
+}
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--income_path', default='models/adult_model.h5', help='model_path')
