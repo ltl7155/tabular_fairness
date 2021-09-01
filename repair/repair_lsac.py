@@ -289,6 +289,7 @@ if __name__ == '__main__':
         para_res = dict()
         for k, ps in enumerate(paras):
             retrain(k, ps, neurons, para_res)
+            
         e = time.time()
         print("time", e-s)
         for k in para_res.keys():
