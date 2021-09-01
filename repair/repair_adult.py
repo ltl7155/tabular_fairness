@@ -17,6 +17,7 @@ import copy
 from preprocessing import pre_census_income
 import tensorflow.keras.backend as KTF
 import argparse
+import random
 
 seed(1)
 tf.random.set_random_seed(2)
