@@ -311,6 +311,7 @@ if __name__ == '__main__':
                         print("*"*100, paras)
                         para_res = dict()
                         for k, ps in enumerate(paras):
+                            print("ps", ps)
                             retrain(k, ps, neurons, para_res)
                         for k in para_res.keys():
                             print(k, para_res[k])
