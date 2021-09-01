@@ -17,6 +17,7 @@ import copy
 from preprocessing import pre_lsac
 import tensorflow.keras.backend as KTF
 import argparse
+from tensorflow.keras import activations
 
 
 seed(1)
