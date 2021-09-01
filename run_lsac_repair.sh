@@ -20,6 +20,7 @@ do
         do
             for ((j=1;j<4;j++))
             do
+            echo $attr
                 CUDA_VISIBLE_DEVICES=$[j%7 + 1] nohup python repair/repair_lsac_ablation.py --attr $attr --ablation $j --percent $p --weight_threshold $w 2>&1 >adult_a\&r.log &
             done
             sleep 1m
