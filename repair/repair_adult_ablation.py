@@ -261,9 +261,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     attrs = args.attr.split("&")
     
+    
     ablations = [1, 2, 3, 4]
     percents = [0.1, 0.2, 0.3, 0.4, 0.5]
     weight_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5]
+    for a in ablations:
+        for atrr in pos_map.keys()
     for p in percents:
         for w in weight_thresholds:
             args.percent = p
