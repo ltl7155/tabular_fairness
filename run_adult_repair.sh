@@ -22,8 +22,8 @@ do
             do
                 CUDA_VISIBLE_DEVICES=$[j%7 + 1] nohup python repair/repair_adult_ablation.py --attr $attr --ablation $j --percent $p --weight_threshold $w 2>&1 >adult_a\&r.log &
             done
-        sleep1m
-        wait
+            sleep 1m
+            wait
         done
     done
 done
