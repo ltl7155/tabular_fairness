@@ -266,12 +266,12 @@ if __name__ == '__main__':
     percents = [0.1, 0.2, 0.3, 0.4, 0.5]
     weight_thresholds = [0.1, 0.2, 0.3, 0.4, 0.5]
     for a in ablations:
-        for atrr in pos_map.keys():
+        for attr_p in pos_map.keys():
             for p in percents:
                 for w in weight_thresholds:
                     args.ablation = a
-                    args.attr = attr
-                    args.percent = p
+                    args.attr = at
+                    args.percent = attr_p
                     args.weight_threshold = w
                     # data preparations
                     path_dict = get_path_dict()
