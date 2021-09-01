@@ -11,7 +11,7 @@
 #   echo -n "$[i] is finished!";
 # done
 
-array={"r" "g" "r\&g"}
+array=("r" "g" "r\&g")
 per=(0.1,0.2,0.3,0.4,0.5)
 wei=(0.1,0.2,0.3,0.4,0.5)
 
