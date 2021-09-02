@@ -248,7 +248,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     attrs = args.attr.split("&")
 
-    s = time.time()
+    
     # data preparations
     path_dict = get_path_dict()
     X_train, X_val, y_train, y_val, constraint = pre_lsac.X_train, \
