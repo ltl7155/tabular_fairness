@@ -7,7 +7,7 @@ from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
 
-
+import time
 seed(1)
 set_random_seed(2)
 import sys, os
@@ -80,9 +80,10 @@ if __name__ == '__main__':
                'r': 3,
                'g': 1,
                }
-    frozen_layers = [1, 2, 3, 4, 5]
+    frozen_layers = [4]
 
     for frozen_layer in frozen_layers:
+        s = time.time()
         model = construct_model(frozen_layer, args.attr)
 #         print(model.get_layer('layer1').get_weights())
         model.load_weights(args.path, by_name=True)
