@@ -122,7 +122,7 @@ if __name__ == '__main__':
 #         newdata_re = model.predict(X_train)
 #         print(newdata_re.shape)
         
-        history = model.fit(x=X_train, y=y_train_labels, epochs10, validation_data=(X_val, y_val_labels))
+        history = model.fit(x=X_train, y=y_train_labels, epochs=30, validation_data=(X_val, y_val_labels))
         e = time.time()
         print("time:", e-s)
         # save model.
