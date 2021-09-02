@@ -123,6 +123,7 @@ if __name__ == '__main__':
 #         print(newdata_re.shape)
         
         history = model.fit(x=X_train, y=y_train_labels, epochs=60, validation_data=(X_val, y_val_labels))
+        e = time.time()
         # save model.
         root_path = 'models/finetuned_models_protected_attributes2/lsac/'
         if not os.path.exists(root_path):
