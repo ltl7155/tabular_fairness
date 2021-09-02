@@ -186,7 +186,7 @@ if __name__=="__main__":
         y=keras.utils.to_categorical(y_train,10),
         validation_data=(x_test,keras.utils.to_categorical(y_test,10)),
         epochs=int(args.epochs),
-        verbose=0,
+        verbose=2,
     )
     
     
