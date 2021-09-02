@@ -126,8 +126,8 @@ if __name__ == '__main__':
         e = time.time()
         print("time:", e-s)
         # save model.
-        root_path = 'models/finetuned_models_protected_attributes2/lsac/'
-        if not os.path.exists(root_path):
-            os.makedirs(root_path)
-        model_name = root_path + args.attr + '_lsac_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
-        keras.models.save_model(model, model_name)
+#         root_path = 'models/finetuned_models_protected_attributes2/lsac/'
+#         if not os.path.exists(root_path):
+#             os.makedirs(root_path)
+#         model_name = root_path + args.attr + '_lsac_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+#         keras.models.save_model(model, model_name)
