@@ -87,7 +87,7 @@ if __name__ == '__main__':
                             validation_data=(X_val, y_val_labels))
         
         e = time.time()
-        print("time:", time)
+        print("time:", e-s)
         # save model.
         
 #         root_path = 'models/finetuned_models_protected_attributes2/bank/'
