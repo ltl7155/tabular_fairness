@@ -6,7 +6,7 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
-
+import time
 
 seed(1)
 set_random_seed(2)
@@ -75,12 +75,13 @@ if __name__ == '__main__':
                'r': 5,
                'g': 1,
                }
-    frozen_layers = [1, 2, 3, 4, 5]
+    frozen_layers = [4]
 
     for frozen_layer in frozen_layers:
+       
         model = construct_model(frozen_layer, args.attr)
         model.load_weights(args.path, by_name=True)
-
+        s = time.time()
         attr = args.attr
         losses = {}
         losses_weights = {}
@@ -113,6 +114,8 @@ if __name__ == '__main__':
 
         history = model.fit(x=X_train, y=y_train_labels, epochs=30,
                             validation_data=(X_val, y_val_labels))
+        e = time.time()
+        print("time:", e-s)
         # save model.
-        model_name = 'models/finetuned_models_protected_attributes2/adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
-        keras.models.save_model(model, model_name)
+#         model_name = 'models/finetuned_models_protected_attributes2/adult/' + args.attr + '_adult_model_' + str(frozen_layer) + "_" + str(round(history.history["val_acc"][-1], 3)) + '.h5'
+#         keras.models.save_model(model, model_name)
