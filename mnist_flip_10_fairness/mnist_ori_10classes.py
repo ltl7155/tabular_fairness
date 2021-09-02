@@ -108,7 +108,7 @@ if __name__=="__main__":
     parser.add_argument("-r","--rate",type=float,default=0.2)
     parser.add_argument("-l","--labels",choices=list(map(str, range(0,10))),default=None,nargs="+")
     parser.add_argument("-e","--epochs",default=15,type=int)
-    parser.add_argument("-n","--net_layers",default="64,32,32,16",type=str,help="arch by comma")
+    parser.add_argument("-n","--net_layers",default="64,32,32,32,16,16",type=str,help="arch by comma")
     
     args = parser.parse_args()
     print (args)
