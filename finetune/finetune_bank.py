@@ -56,7 +56,7 @@ if __name__ == '__main__':
             }
     category_map = {'a': 5,
                }
-    frozen_layers = [1, 2, 3, 4, 5]
+    frozen_layers = [4]
 
     for frozen_layer in frozen_layers:
         model = construct_model(frozen_layer, args.attr)
