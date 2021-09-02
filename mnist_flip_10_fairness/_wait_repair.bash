@@ -12,8 +12,8 @@ arr=( $(shuf -e "${arr[@]}") )
 
 index=$1
 #1125666
-declare -a device_list=(1 2 3 4 5 6 7)
-count=7
+declare -a device_list=(0 1 2 3 4 5 6 7)
+count=8
 ITER=0
 
 for i in "${arr[@]}"

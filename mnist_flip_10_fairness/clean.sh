@@ -5,3 +5,4 @@
  find . -name '*.npz'|xargs -I {} rm -fr   "{}"
  find . -name '*.score'|xargs -I {} rm -fr   "{}"
  find . -name '*.jpg'|xargs -I {} rm -fr   "{}"
+ find . -name '*.log'|xargs -I {} rm -fr   "{}"

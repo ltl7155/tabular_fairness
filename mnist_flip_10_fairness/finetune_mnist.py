@@ -5,6 +5,7 @@ import numpy as np
 
 from tensorflow import keras
 import os
+import json
 import joblib
 import numpy as np
 from tensorflow.keras.utils import to_categorical
@@ -35,7 +36,7 @@ def construct_model(frozen_layers, attr,args_arch):
     
     input =keras.Input(shape=in_shape,name="input")
     
-    args_arch= [int(x) for x in args_arch.split(",")] 
+    args_arch= [int(x) for x in args_arch.split(",")]  if type(args_arch) ==str else args_arch
     archs = [tf.keras.layers.Dense(x, activation="relu",name=f"layer_{ii}")
              for ii,x in enumerate(args_arch) 
              ]
@@ -73,21 +74,47 @@ def debug_bg_white_rate(x_train):
 
 if __name__ == '__main__':
     import argparse
+    import json 
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
-    parser.add_argument('--path', default='models/original/mnist01_model_onlyweight_7f8d35d4fa019ff5fdbb5456b28ca52c.h5', help='model_path')
+    parser.add_argument('--model-id', default='4f695ad74a0494b7c9eef45dd763e514', help='model_hash_id')
+    #parser.add_argument('--path', default='models/original/mnist01_model_onlyweight_7f8d35d4fa019ff5fdbb5456b28ca52c.h5', help='model_path')
     parser.add_argument('--attr', default='background', help='protected attributes')
-    parser.add_argument("-n","--net_layers",default="64,32,32,16",type=str,help="arch by comma")
+    #parser.add_argument("-n","--net_layers",default="64,32,32,16",type=str,help="arch by comma")
+    parser.add_argument("-e","--epoches_list",default="2,2,4,4,5,5,5,5",type=str,help="arch by comma")
     args = parser.parse_args()
+
+
+    model_id = args.model_id
 
     assert args.attr in ["background"]
     attr_info ={"name":"background","class_num":1}
     category_map= {attr_info["name"]:attr_info["class_num"]}
     # net_arch_args= args.net_layers
     # net_arch_args= [int(x) for x in net_arch_args.split(",")] 
-    
-    frozen_layers = [1, 2, 3, 4, 5]
+    weight_path = "models/original/mnist01_model_onlyweight_{model_id}.h5".format(model_id=model_id)
+    assert os.path.isfile(weight_path)
+    setattr(args,"path",weight_path)
 
-    for frozen_layer,epochs in zip(frozen_layers, [2,2,4,4,5]):
+    meta_path = "models/original/mnist01_model_{model_id}_meta.json".format(model_id=model_id)
+    assert os.path.isfile(meta_path)
+    with open(meta_path ) as f :
+        meta_info = json.load(f)
+    
+    net_archs = meta_info["net_layers"]
+    setattr(args,"net_layers",net_archs)
+
+    
+    frozen_layers = list(range(1,10))#[1, 2, 3, 4, 5]
+    frozen_layers = frozen_layers[:len(net_archs)]
+
+
+    epoches_list = args.epoches_list
+    epoches_list = [int(x) for x in epoches_list.split(",")]
+    epoches_list = epoches_list[:len(net_archs)]
+
+    assert len(epoches_list)==len(frozen_layers),("epoches_list",epoches_list,"frozen_layers",frozen_layers)
+
+    for frozen_layer,epochs in zip(frozen_layers, epoches_list ):
         model = construct_model(frozen_layer, args.attr,args_arch=args.net_layers)
         model.load_weights(args.path, by_name=True)# if ".tf" in args.path else False )
 
@@ -140,8 +167,16 @@ if __name__ == '__main__':
                             validation_data=(X_val, y_val_labels))
         val_accuracy = history.history["val_acc"] if "val_acc" in history.history else history.history["val_accuracy"]
         # # save model.
-        model_name = 'models/finetuned_models_protected_attributes2/mnist01/' + args.attr + '_mnist01_model_' + str(frozen_layer) + "_" + str(round(val_accuracy[-1], 3)) + '.h5'
+        #model_name = 'models/finetuned_models_protected_attributes2/mnist01/' + args.attr + '_mnist01_model_' + str(frozen_layer) + "_" + str(round(val_accuracy[-1], 3)) + '.h5'
+
+        #model_name = 'models/finetuned_models_protected_attributes2/mnist01/id={model_id}__attr={attr}__mnist01__frlayer={frozen_layer}__acc{acc}.h5'.format(model_id=model_id,attr=args.attr ,frozen_layer=str(frozen_layer), acc=str(round(val_accuracy[-1], 3)) )
+        model_name = 'models/finetuned_models_protected_attributes2/mnist01/{model_id}__{attr}__mnist01__{frozen_layer}__{acc}.h5'.format(model_id=model_id,attr=args.attr ,frozen_layer=str(frozen_layer), acc=str(round(val_accuracy[-1], 3)) )
         keras.models.save_model(model, model_name)
 
+        json_meta_name = model_name.replace(".h5","__meta.json")# 'models/finetuned_models_protected_attributes2/mnist01/id={model_id}__attr={attr}__mnist01__frlayer={frozen_layer}__acc{acc}.h5'.format(model_id=model_id,attr=args.attr ,frozen_layer=str(frozen_layer), acc=str(round(val_accuracy[-1], 3)) )
+        with open(json_meta_name,"w") as f :
+            args_var_info = vars(args)
+            args_var_info.update({"frozen_layer":str(frozen_layer),"acc":str(round(val_accuracy[-1], 3)) } )
+            json.dump(obj=args_var_info, fp =f )
 
 

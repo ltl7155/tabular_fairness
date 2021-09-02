@@ -12,18 +12,22 @@ import copy
 import tensorflow.keras.backend as KTF
 import argparse
 
+
 np.random.seed(42)
+#assert  str(tf.__version__).startswith("2.")
 if str(tf.__version__).startswith("2."):
     tf.random.set_seed(42)
 else:
     tf.random.set_random_seed(42)
 
+try :
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth=True
+    sess = tf.Session(config=config)
+    KTF.set_session(sess)
+except :
+    pass
 
-config = tf.ConfigProto()  
-config.gpu_options.allow_growth=True 
-sess = tf.Session(config=config)
-
-KTF.set_session(sess)
 
 
 import pre_mnist_01 
@@ -33,30 +37,29 @@ from scalelayer import  ScaleLayer
 # from preprocessing import pre_census_income
 
 import json
-# config = tf.ConfigProto()  
-# config.gpu_options.allow_growth=True 
-# sess = tf.Session(config=config)
 
-# KTF.set_session(sess)
+
 
 def my_loss_fun(y_true, y_pred):
     # do whatever you want
+    #tf.print (y_true.shape,y_pred.shape,"true....pred")
     return y_pred
 
-def construct_model(neurons, top_layer, name, min, max, net_archs,need_weights=True):
+def construct_model(neurons, top_layer, name, min, max, net_layers,need_weights=True):
     in_shape = X_train.shape[1:]
     assert X_train.ndim==2
     input = keras.Input(shape=in_shape,name="input")
 
     layer_lst = [
         keras.layers.Dense(xi, activation="relu", name=f"layer_{ii}")
-        for ii,xi in enumerate(net_archs) 
+        for ii,xi in enumerate(net_layers) 
         ]
-    layer6 = keras.layers.Dense(1, activation="sigmoid", name="layer6")
+    #output = keras.layers.Dense(1, activation="sigmoid", name="output")
+    output = keras.layers.Dense(10, activation="softmax", name="output")
 
     ds = [
         ScaleLayer(xi, min,max)
-        for ii,xi in enumerate(net_archs) 
+        for ii,xi in enumerate(net_layers) 
         ]
 
     for layer in layer_lst[0: top_layer]:
@@ -67,31 +70,40 @@ def construct_model(neurons, top_layer, name, min, max, net_archs,need_weights=T
         x = l(x)
         if i < top_layer:
             x = ds[i](x)
-    x = layer6(x)
+    x = output(x)
 
     if not need_weights:
         return keras.Model(input, x)
 
     w = 0.
-    for i, re in enumerate(neurons):
-        neg = re[0]
-        pos = re[1]
-        d = ds[i]
-        for m in neg:
-            w = tf.math.add(w, d.weights[0][0][m])
-        for n in pos:
-            w = tf.math.subtract(w, d.weights[0][0][n])
+    #for i, re in enumerate(neurons):
+    #    neg = re[0]
+    #    pos = re[1]
+    #    d = ds[i]
+    #    for m in neg:
+    #        w = tf.math.add(w, d.weights[0][0][m])
+    #    for n in pos:
+    #        w = tf.math.subtract(w, d.weights[0][0][n])
     new_w = tf.identity(tf.reshape(w, [1, 1]), name=name)
-
     model = keras.Model(input, [x, new_w])
+
     return model
 
-def get_path_dict(saved_model_path):
-    assert os.path.isdir(saved_model_path),saved_model_path
-    path_ls = os.listdir(saved_model_path)
-    path_dict = {}
-    path_dict['background'] = [saved_model_path+p for p in path_ls if "background" in p]
-    path_dict['background'].sort()
+def get_path_dict(saved_model_path,model_id=None):
+    if model_id is not None:
+        import glob
+        reg_saved_model_path=  os.path.join( saved_model_path, "*{}*.h5".format(model_id))
+        print (reg_saved_model_path,"try search")
+        path_ls=glob.glob(reg_saved_model_path)
+        path_dict = {}
+        path_dict['background'] = [p for p in path_ls if "background" in p]
+        path_dict['background'].sort()
+    else:
+        assert os.path.isdir(saved_model_path),saved_model_path
+        path_ls = os.listdir(saved_model_path)
+        path_dict = {}
+        path_dict['background'] = [saved_model_path+p for p in path_ls if "background" in p]
+        path_dict['background'].sort()
     print(path_dict)
     return path_dict
 
@@ -162,22 +174,58 @@ def get_penalty_awarded(top_n, layer_num, total_num, income_critical, protected_
     neurons = neurons[1: (top_n + 1)]
     return neurons
 
-def retrain(k, ps, neurons, para_res, net_archs=[64,32,32,16,10]):
+def retrain(k, ps, neurons, para_res, net_layers=[64,32,32,16,10]):
+    old_path = args.origin_weight_path.replace("onlyweight_","")
+
+    old_model = keras.models.load_model(old_path)
+    old_model.compile(loss="categorical_crossentropy",optimizer="nadam", metrics=["accuracy"])
+
+    xt=old_model.evaluate(X_val,keras.utils.to_categorical( y_val,10) )
+    loss_info  =dict(zip(["loss_output","acc_output"],xt   ))
+    print ("old-----"*10,"\n\t", loss_info )
+
+    #old_model.summary()
+    def debug_numpy(x1,x2,x):
+        print (x1,"")
+        for idx,ox in enumerate(x) :
+            print ("\t",idx,":",ox.shape,ox.mean(),ox.std())
+
+    '''
+    for olayer in old_model.layers :
+        at= olayer.get_weights()
+        debug_numpy(olayer.name, olayer.get_config(), at)
+    '''
 
     name = 'my_name_' + str(top_n) + '_' + str(k)
-    new_model = construct_model(net_archs=net_archs,neurons=neurons, top_layer=top_n, name=name,min= ps[0], max=ps[1])
-    new_model.load_weights(args.origin_weight_path, by_name=True)
+    new_model = construct_model(net_layers=net_layers,neurons=neurons, top_layer=top_n, name=name,min= ps[0], max=ps[1])
 
     tf_name = 'tf_op_layer_' + name
-    losses = {'layer6': 'binary_crossentropy', tf_name: my_loss_fun}
-    losses_weights = {'layer6': 1.0, tf_name: 1.0}
+    losses = {'output': 'categorical_crossentropy', tf_name: my_loss_fun}
+    losses_weights = {'output': 1, tf_name: 1}
+    new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'output': "accuracy"} )
+    #new_model.summary()
 
-    new_model.compile(loss=losses, loss_weights=losses_weights, optimizer="nadam", metrics={'layer6': "accuracy"})
-    history = new_model.fit(x=X_train, y={'layer6': y_train, tf_name: y_train}, epochs=10,
-                            validation_data=(X_val, {'layer6': y_val, tf_name: y_val}))
+    model_weight_rather_than_weight= args.origin_weight_path.replace("onlyweight_","")
+    new_model.load_weights(model_weight_rather_than_weight, by_name=True)#,  skip_mismatch= True)
+
+    '''
+    for olayer in new_model.layers :
+        at= olayer.get_weights()
+        debug_numpy(olayer.name, olayer.get_config(), at)
+    '''
+
+
+    xt=new_model.evaluate(X_val,{"output":keras.utils.to_categorical( y_val,10), tf_name:y_val} )
+    loss_info  =dict(zip(["loss_tfname","loss_output","acc_tfname","acc_ouput"],xt   ))
+    print ("new-----"*10,"\n\t", loss_info )
+
+    #print ("tf_name",tf_name, np.unique(y_train),"np.unique.y_train","X_train",X_train.shape,"X_train.uniq",np.unique(X_train))
+    history = new_model.fit(x=X_train, y={'output':keras.utils.to_categorical( y_train), tf_name: y_train}, epochs=10,verbose=2,
+                            validation_data=(X_val, {'output': keras.utils.to_categorical(y_val), tf_name: y_val}))
 
     re, _ = new_model.predict(X_test)
-    pred_maskmodel = (re > 0.5).astype(int).flatten()
+    #pred_maskmodel = (re > 0.5).astype(int).flatten()
+    pred_maskmodel = np.argmax(re,axis=1).flatten()
 
     test_acc = np.sum(pred_maskmodel == y_test) / len(y_test)
 
@@ -189,7 +237,8 @@ def retrain(k, ps, neurons, para_res, net_archs=[64,32,32,16,10]):
         l = len(similar_X)
         for i in range(l):
             newdata_re, _ = new_model.predict(similar_X[i])
-            newdata_re = (newdata_re > 0.5).astype(int).flatten()
+            #newdata_re = (newdata_re > 0.5).astype(int).flatten()
+            newdata_re = np.argmax(newdata_re ,axis=1).flatten()
             newdata_res.append(newdata_re)
 
         repaired_num = get_repaired_num(newdata_res)
@@ -205,7 +254,7 @@ def retrain(k, ps, neurons, para_res, net_archs=[64,32,32,16,10]):
     if args.saved:
         # model_name = 'models/race_gated_'+str(top_n)+'_'+str(args.percent)+'_'+str(args.weight_threshold)+'.h5'
         model_name = f'models/gated_models/mnist01_{args.attr}_gated_{str(top_n)}_{str(args.percent)}_{args.weight_threshold}_p{ps[0]}_p{ps[1]}.h5'
-        saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False,net_archs=args.net_archs)
+        saved_model = construct_model(neurons, top_n, name, ps[0], ps[1], need_weights=False,net_layers=args.net_layers)
         saved_model.set_weights(new_model.get_weights())
         saved_model.trainable = True
         tf.keras.models.save_model(saved_model, model_name)
@@ -219,7 +268,8 @@ def retrain(k, ps, neurons, para_res, net_archs=[64,32,32,16,10]):
 #             }
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
-    parser.add_argument('--origin_weight_path', default='models/original/mnist01_model_onlyweight_7f8d35d4fa019ff5fdbb5456b28ca52c.h5', help='model_path')
+    #parser.add_argument('--origin_weight_path', default='models/original/mnist01_model_onlyweight_7f8d35d4fa019ff5fdbb5456b28ca52c.h5', help='model_path')
+    parser.add_argument('--model-id', default='4f695ad74a0494b7c9eef45dd763e514', help='model_path')
     #parser.add_argument('--target_model_path', default='models/mnist01_EIDIG_INF_retrained_model.h5', help='model_path')
     parser.add_argument('--finetune_path', default='models/finetuned_models_protected_attributes2/mnist01/', help='finetune')
     parser.add_argument('--attr', default='background', help='protected attributes')
@@ -233,17 +283,24 @@ if __name__ == '__main__':
     parser.add_argument("-n","--net-archs",default="64,32,32,16",type=str,help="arch by comma")
     args = parser.parse_args()
     attrs = args.attr.split("&")
+    
+    model_id = args.model_id 
 
-    weight_p = args.origin_weight_path
-    weight_p = weight_p.replace("onlyweight_","")
+    weight_p =  "models/original/mnist01_model_onlyweight_{}.h5".format(model_id)
     setattr(args,"origin_weight_path",weight_p)
+    setattr(args,"origin_model_path",weight_p.replace("_onlyweight",""))
 
-    args_arch= args.net_archs
-    args_arch= [int(x) for x in args_arch.split(",")] 
-    setattr(args,"net_archs",args_arch)
+    meta_p =  "models/original/mnist01_model_{}_meta.json".format(model_id)
+    with open(meta_p) as f :
+        meta_info = json.load(f)
+    net_layers= meta_info["net_layers"]
+    setattr(args,"net_layers",net_layers)
 
     # data preparations
-    path_dict = get_path_dict(args.finetune_path)
+    assert os.path.isdir(args.finetune_path)
+    #finetune_path= os.path.join(args.finetune_path, "*{}*.h5".format(model_id) )
+    #setattr(args,"finetune_path",finetune_path)
+    path_dict = get_path_dict(args.finetune_path,model_id=model_id)
     # X_train, X_val, y_train, y_val, constraint = pre_mnist01.X_train, \
     # pre_mnist01.X_val, pre_mnist01.y_train, pre_mnist01.y_val, pre_mnist01.constraint
     X_train, X_val, y_train, y_val, constraint = pre_mnist_01_dataset["X_train"], \
@@ -254,9 +311,9 @@ if __name__ == '__main__':
     assert np.max(X_train)==1 
 
     #target_model_path = args.target_model_path
-    model_id = os.path.basename(args.origin_weight_path)
-    model_id = os.path.splitext(model_id)[0]   
-    data_name = "discriminatory_data/mnist01/{}_adv_inconsistent.npz.npy".format(model_id)
+    #model_id = os.path.basename(args.origin_weight_path)
+    #model_id = os.path.splitext(model_id)[0]   
+    data_name = "discriminatory_data/mnist01/mnist01_model_{}_adv_inconsistent.npz.npy".format(model_id)
     dis_data = np.load(data_name)
     #print (type(dis_data))
     #print (dis_data.shape,"dis_data")
@@ -266,8 +323,8 @@ if __name__ == '__main__':
     protected_attribs =[0]# pos_map[args.attr]
     similar_X = similar_set(dis_data)
 
-    income_train_scores = get_relevance(args.origin_weight_path, X_train,
-                                        save_path=os.path.join('scores/mnist01', os.path.basename(args.origin_weight_path) + ".score"))
+    income_train_scores = get_relevance(args.origin_model_path, X_train,
+                                        save_path=os.path.join('scores/mnist01', os.path.basename(args.origin_model_path) + ".score"))
     income_critical = get_critical_neurons(income_train_scores, args.percent)
     finals = []
     for top_n in [4]:
@@ -291,9 +348,14 @@ if __name__ == '__main__':
         else:
             paras = [(-args.p0/20, args.p1/20)]
         print("*"*100, paras)
+        print("*"*100, paras)
+        print("*"*100, paras)
+        print("*"*100, paras)
+        print("*"*100, paras)
+        print("*"*100, paras)
         para_res = dict()
         for k, ps in enumerate(paras):
-            retrain(k, ps, neurons, para_res,net_archs=args.net_archs)
+            retrain(k, ps, neurons, para_res,net_layers=args.net_layers)
         for k in para_res.keys():
             print(k, para_res[k])
             # weights = new_model.get_weights()

@@ -10,6 +10,14 @@ if str(tf.__version__).startswith("2."):
 else:
     tf.random.set_random_seed(42)
 
+
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+	for gpu in gpus:
+		tf.config.experimental.set_memory_growth(gpu, True)
+
+
+
 class sigmoid_layer_2_softmax_layer(tf.keras.layers.Layer):
     def __init__(self,**kwargs):
         super(sigmoid_layer_2_softmax_layer, self).__init__(**kwargs)
@@ -244,17 +252,25 @@ if __name__ == "__main__":
     from foolbox.attacks import LinfPGD
 
     import argparse
+    import json 
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
     parser.add_argument('--save-dir', default='discriminatory_data/mnist01/', help='unfair_testseed_path')
-    parser.add_argument('--weight-path', default='models/original/mnist01_model_onlyweight_7f8d35d4fa019ff5fdbb5456b28ca52c.h5', help='vulnerable_model')
-    parser.add_argument("-n","--net_layers",default="64,32,32,16",type=str,help="arch by comma")
+    parser.add_argument('--model-id', default='7f8d35d4fa019ff5fdbb5456b28ca52c', help='vulnerable_model')
+    #parser.add_argument('--weight-path', default='models/original/mnist01_model_onlyweight_7f8d35d4fa019ff5fdbb5456b28ca52c.h5', help='vulnerable_model')
+    #parser.add_argument("-n","--net_layers",default="64,32,32,16",type=str,help="arch by comma")
 
 
     args= parser.parse_args()
 
-    args_arch= args.net_layers
-    args_arch= [int(x) for x in args_arch.split(",")] 
-    setattr(args,"net_layers",args_arch)
+    model_id = args.model_id
+    weight_p =  "models/original/mnist01_model_onlyweight_{}.h5".format(model_id)
+    setattr(args,"weight_path",weight_p)
+
+    meta_p =  "models/original/mnist01_model_{}_meta.json".format(model_id)
+    with open(meta_p) as f :
+        meta_info = json.load(f)
+    args_layers= meta_info["net_layers"]
+    setattr(args,"net_layers",args_layers)
 
 
     main(args)

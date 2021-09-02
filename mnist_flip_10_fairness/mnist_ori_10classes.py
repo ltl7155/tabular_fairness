@@ -159,6 +159,7 @@ if __name__=="__main__":
     # ])
     args_arch= args.net_layers
     args_arch= [int(x) for x in args_arch.split(",")] 
+    setattr(args,"net_layers",args_arch)
     archs = [tf.keras.layers.Dense(x, activation="relu",name=f"layer_{ii}")
              for ii,x in enumerate(args_arch) 
              ]
@@ -216,3 +217,4 @@ if __name__=="__main__":
     import json
     with open(modelinfo_name,"w") as f :
         json.dump(fp=f,obj=args_info_dict,indent=2) 
+    print ("save....",modelinfo_name)

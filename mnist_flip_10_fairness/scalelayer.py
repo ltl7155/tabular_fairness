@@ -6,8 +6,9 @@ class  ScaleLayer(tf.keras.layers.Layer):
         super(ScaleLayer, self).__init__(**kwargs)
         tf.keras.constraints.MinMaxNorm()
         self.scale = K.variable([[1. for x in range(dense_len)]], name='ffff',
-                                constraint=lambda t: tf.clip_by_value(t, min, max))
+                                constraint=lambda t: tf.clip_by_value(t, min, max),)
        
+        #self.scale.trainable=False
         self.dense_len = dense_len
         
     def call(self, inputs, **kwargs):
