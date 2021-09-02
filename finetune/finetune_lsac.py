@@ -68,7 +68,7 @@ import argparse
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='fine-tune models with protected attributes')
 #     parser.add_argument('--path', default='models/retrained_models_EIDIG/lsac_EIDIG_INF_retrained_model.h5', help='model_path')
-    parser.add_argument('--path', default='models/retrained_model_EIDIG/lsac_EIDIG_INF_retrained_model.h5', help='model_path')
+    parser.add_argument('--path', default='models/lsac_model.h5', help='model_path')
     parser.add_argument('--attr', default='r', help='protected attributes')
     args = parser.parse_args()
 
