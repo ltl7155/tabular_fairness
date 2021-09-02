@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow import set_random_seed
 from numpy.random import seed
 from tensorflow.keras.utils import to_categorical
+import time
 seed(1)
 set_random_seed(2)
 import sys, os
@@ -63,6 +64,7 @@ if __name__ == '__main__':
         model.load_weights(args.path, by_name=True)
 #         print(model.get_layer('layer1').get_weights())
         attr = args.attr
+        s = time.time()
         losses = {}
         losses_weights = {}
         metrics = {}
